@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parser / Builder Tests</title>
+</head>
+<body>
+  <pre id="results">Running...</pre>
+  <script src="../js/parser.js"></script>
+  <script src="../js/builder.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      const results = document.getElementById('results');
+      const lines = [];
+      let failures = 0;
+
+      function parseXml(text) {
+        return new DOMParser().parseFromString(text, 'text/xml');
+      }
+
+      const fixtures = {};
+
+      function test(name, fn) {
+        try {
+          fn();
+          lines.push('PASS ' + name);
+        } catch (err) {
+          failures++;
+          lines.push('FAIL ' + name + ': ' + (err && err.message ? err.message : String(err)));
+        }
+      }
+
+      function assert(condition, message) {
+        if (!condition) throw new Error(message || 'assertion failed');
+      }
+
+      function loadFixture(path) {
+        return fetch(path).then(function (res) {
+          if (!res.ok) throw new Error('failed to load ' + path);
+          return res.text();
+        });
+      }
+
+      function runTests() {
+      test('parses GPX tracks and waypoints', function () {
+        const doc = parseXml(fixtures.basicGpx);
+        const out = parseGpx(doc);
+        assert(out.tracks.length === 1, 'expected one track');
+        assert(out.tracks[0].points[0].time === '2026-01-01T00:00:00Z', 'expected timestamp');
+        assert(out.waypoints[0].name === 'Start & Safe', 'expected waypoint name');
+      });
+
+      test('parses GPX routes', function () {
+        const doc = parseXml(fixtures.routeGpx);
+        const out = parseGpx(doc);
+        assert(out.tracks.length === 1, 'expected route as track');
+        assert(out.tracks[0].points[0].lat === -33.8568, 'expected south latitude');
+        assert(out.tracks[0].points[1].lon === 151.2161, 'expected east longitude');
+      });
+
+      test('parses GPX waypoints-only files', function () {
+        const doc = parseXml(fixtures.waypointsOnlyGpx);
+        const out = parseGpx(doc);
+        assert(out.tracks.length === 0, 'expected no tracks');
+        assert(out.waypoints.length === 2, 'expected two waypoints');
+      });
+
+      test('parses KML LineString and Point placemarks', function () {
+        const doc = parseXml(fixtures.basicKml);
+        const out = parseKml(doc);
+        assert(out.tracks.length === 1, 'expected one LineString');
+        assert(out.waypoints[0].name === 'Point & Safe', 'expected decoded waypoint name');
+      });
+
+      test('parses KML gx:Track timestamps', function () {
+        const doc = parseXml(fixtures.gxTrackKml);
+        const out = parseKml(doc);
+        assert(out.tracks.length === 1, 'expected one gx:Track');
+        assert(out.tracks[0].points[0].lat === 31.2304, 'expected gx latitude');
+        assert(out.tracks[0].points[1].time === '2026-01-01T00:01:00Z', 'expected gx time alignment');
+      });
+
+      test('builds escaped GPX and KML output', function () {
+        const data = { tracks: [{ points: [{ lat: 1, lon: 2, time: '2026-01-01T00:00:00Z' }, { lat: 3, lon: 4 }] }], waypoints: [{ lat: 5, lon: 6, name: 'A&B <C>' }] };
+        const gpx = buildGpx(data, { startName: 'S&<', endName: 'E', preserveTime: true });
+        const kml = buildKml(data, { startName: 'S&<', endName: 'E', preserveTime: true });
+        assert(gpx.indexOf('S&amp;&lt;') !== -1, 'expected escaped GPX name');
+        assert(kml.indexOf('A&amp;B &lt;C&gt;') !== -1, 'expected escaped KML waypoint');
+      });
+
+      results.textContent = (failures ? 'FAILED' : 'OK') + '\n' + lines.join('\n');
+      document.title = failures ? 'Tests Failed' : 'Tests Passed';
+      }
+
+      Promise.all([
+        loadFixture('fixtures/basic.gpx'),
+        loadFixture('fixtures/route.gpx'),
+        loadFixture('fixtures/waypoints-only.gpx'),
+        loadFixture('fixtures/basic.kml'),
+        loadFixture('fixtures/gx-track.kml')
+      ]).then(function (loaded) {
+        fixtures.basicGpx = loaded[0];
+        fixtures.routeGpx = loaded[1];
+        fixtures.waypointsOnlyGpx = loaded[2];
+        fixtures.basicKml = loaded[3];
+        fixtures.gxTrackKml = loaded[4];
+        runTests();
+      }).catch(function (err) {
+        results.textContent = 'FAILED\n' + (err && err.message ? err.message : String(err));
+        document.title = 'Tests Failed';
+      });
+    })();
+  </script>
+</body>
+</html>

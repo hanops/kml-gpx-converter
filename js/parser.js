@@ -59,6 +59,17 @@
       if (points.length) tracks.push({ points });
     }
 
+    const rteList = doc.getElementsByTagName('rte');
+    for (let r = 0; r < rteList.length; r++) {
+      const points = [];
+      const rtepts = rteList[r].getElementsByTagName('rtept');
+      for (let i = 0; i < rtepts.length; i++) {
+        const pt = parseGpxPoint(rtepts[i]);
+        if (pt) points.push(pt);
+      }
+      if (points.length) tracks.push({ points });
+    }
+
     const wptList = doc.getElementsByTagName('wpt');
     for (let i = 0; i < wptList.length; i++) {
       const pt = parseGpxPoint(wptList[i]);
@@ -86,6 +97,14 @@
     return points;
   }
 
+  function parseKmlGxCoord(text) {
+    const tuple = (text || '').trim().split(/\s+/).map(function (s) { return parseFloat(s); });
+    if (tuple.length < 2 || Number.isNaN(tuple[0]) || Number.isNaN(tuple[1])) return null;
+    const pt = { lat: tuple[1], lon: tuple[0] };
+    if (tuple.length >= 3 && !Number.isNaN(tuple[2])) pt.ele = tuple[2];
+    return pt;
+  }
+
   function getFirstByLocalName(parent, localName) {
     const list = findAllByLocalName(parent, localName);
     return list.length ? list[0] : null;
@@ -103,6 +122,21 @@
       const coordEl = getFirstByLocalName(lineStrings[i], 'coordinates');
       if (!coordEl || !coordEl.textContent) continue;
       const points = parseKmlCoords(coordEl.textContent);
+      if (points.length) tracks.push({ points });
+    }
+
+    const gxTracks = findAllByLocalName(doc, 'Track');
+    for (let i = 0; i < gxTracks.length; i++) {
+      const coordEls = findAllByLocalName(gxTracks[i], 'coord');
+      const whenEls = findAllByLocalName(gxTracks[i], 'when');
+      const points = [];
+      for (let c = 0; c < coordEls.length; c++) {
+        const pt = parseKmlGxCoord(coordEls[c].textContent);
+        if (pt) {
+          if (whenEls[c] && whenEls[c].textContent) pt.time = whenEls[c].textContent.trim();
+          points.push(pt);
+        }
+      }
       if (points.length) tracks.push({ points });
     }
 

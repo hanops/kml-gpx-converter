@@ -41,6 +41,16 @@ main {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: #666;
+}
+
 .upload-section {
   margin-bottom: 1.5rem;
 }
@@ -247,6 +257,10 @@ main {
 .batch-item .file-meta {
   color: #666;
   font-size: 0.8125rem;
+}
+
+.batch-item .file-meta.error {
+  color: #c62828;
 }
 
 .batch-item button {

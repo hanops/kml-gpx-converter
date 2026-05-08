@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check js/parser.js
+          node --check js/builder.js
+          node --check js/app.js
+
+      - name: Required file checks
+        run: |
+          test -f VERSION
+          test -f CHANGELOG.md
+          test -f LICENSE
+          test -f vendor/leaflet/leaflet.css
+          test -f vendor/leaflet/leaflet.js
+          test -f vendor/jszip/jszip.min.js
+          test -f tests/parser-builder.html
+
