@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## V1.1.1 - 2026-05-08
+
+- Made the frontend version display more explicit with a title badge.
+- Updated footer version text to show the current patch version and v1.1 series.
+- Updated project version metadata to `1.1.1`.
+
 ## V1.1.0 - 2026-05-08
 
 - Added explicit project version metadata.

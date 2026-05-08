@@ -6,7 +6,7 @@ This repository is a pure frontend KML / KMZ / GPX converter.
 
 The app runs entirely in the browser. There is no backend, build step, package manager, or framework by default. Keep it that way unless there is a clear product reason to add more infrastructure.
 
-Current release target: **V1.1.0**.
+Current release line: **v1.1.x**.
 
 ## Structure
 
