@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Report a conversion, parsing, preview, or download problem
-title: "[Bug]: "
+title: '[Bug]: '
 labels: bug
-assignees: ""
+assignees: ''
 ---
 
 ## Summary
@@ -38,4 +38,3 @@ Browser and version:
 ## Notes
 
 If you can share a minimal sample file, attach it. Do not attach private location data unless you are comfortable sharing it.
-

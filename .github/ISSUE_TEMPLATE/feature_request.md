@@ -1,9 +1,9 @@
 ---
 name: Feature request
 about: Suggest an improvement or new format behavior
-title: "[Feature]: "
+title: '[Feature]: '
 labels: enhancement
-assignees: ""
+assignees: ''
 ---
 
 ## Problem
@@ -23,4 +23,3 @@ What would you like to happen?
 ## Additional Context
 
 Add examples, screenshots, or compatibility notes if useful.
-

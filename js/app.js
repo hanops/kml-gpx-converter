@@ -1,495 +1,625 @@
-(function () {
-  'use strict';
+;(function () {
+  'use strict'
 
-  const dropZone = document.getElementById('dropZone');
-  const fileInput = document.getElementById('fileInput');
-  const convertDirection = document.getElementById('convertDirection');
-  const convertBtn = document.getElementById('convertBtn');
-  const statusMessage = document.getElementById('statusMessage');
-  const previewSection = document.getElementById('previewSection');
-  const previewContent = document.getElementById('previewContent');
-  const mapPreviewEl = document.getElementById('mapPreview');
-  const batchSection = document.getElementById('batchSection');
-  const batchList = document.getElementById('batchList');
-  const startNameEl = document.getElementById('startName');
-  const endNameEl = document.getElementById('endName');
-  const preserveTimeEl = document.getElementById('preserveTime');
+  const dropZone = document.getElementById('dropZone')
+  const fileInput = document.getElementById('fileInput')
+  const convertDirection = document.getElementById('convertDirection')
+  const convertBtn = document.getElementById('convertBtn')
+  const statusMessage = document.getElementById('statusMessage')
+  const previewSection = document.getElementById('previewSection')
+  const previewContent = document.getElementById('previewContent')
+  const mapPreviewEl = document.getElementById('mapPreview')
+  const batchSection = document.getElementById('batchSection')
+  const batchList = document.getElementById('batchList')
+  const startNameEl = document.getElementById('startName')
+  const endNameEl = document.getElementById('endName')
+  const preserveTimeEl = document.getElementById('preserveTime')
 
-  let selectedFiles = [];
-  let batchOutputs = [];
-  let mapInstance = null;
-  let mapLayerGroup = null;
+  let selectedFiles = []
+  let batchOutputs = []
+  let mapInstance = null
+  let mapLayerGroup = null
 
   function setStatus(text, type) {
-    statusMessage.textContent = text;
-    statusMessage.className = 'status-message' + (type ? ' ' + type : '');
+    statusMessage.textContent = text
+    statusMessage.className = 'status-message' + (type ? ' ' + type : '')
   }
 
   function getBuildOpts() {
     return {
-      startName: (startNameEl && startNameEl.value) ? startNameEl.value.trim() : 'Start',
-      endName: (endNameEl && endNameEl.value) ? endNameEl.value.trim() : 'End',
+      startName: startNameEl && startNameEl.value ? startNameEl.value.trim() : 'Start',
+      endName: endNameEl && endNameEl.value ? endNameEl.value.trim() : 'End',
       preserveTime: preserveTimeEl ? preserveTimeEl.checked : true
-    };
+    }
   }
 
   function formatCoord(p) {
-    if (!p) return '—';
-    const latDir = p.lat < 0 ? 'S' : 'N';
-    const lonDir = p.lon < 0 ? 'W' : 'E';
-    return Math.abs(p.lat).toFixed(5) + '°' + latDir + ', ' + Math.abs(p.lon).toFixed(5) + '°' + lonDir + (p.ele != null ? ' (' + p.ele + 'm)' : '');
+    if (!p) return '—'
+    const latDir = p.lat < 0 ? 'S' : 'N'
+    const lonDir = p.lon < 0 ? 'W' : 'E'
+    return (
+      Math.abs(p.lat).toFixed(5) +
+      '°' +
+      latDir +
+      ', ' +
+      Math.abs(p.lon).toFixed(5) +
+      '°' +
+      lonDir +
+      (p.ele != null ? ' (' + p.ele + 'm)' : '')
+    )
   }
 
   function popupText(text) {
-    const el = document.createElement('span');
-    el.textContent = text;
-    return el;
+    const el = document.createElement('span')
+    el.textContent = text
+    return el
   }
 
   function renderPreview(data, waypointsOnlyHint) {
-    const lines = [];
-    const tracks = (data && data.tracks) ? data.tracks : [];
-    const waypoints = (data && data.waypoints) ? data.waypoints : [];
+    const lines = []
+    const tracks = data && data.tracks ? data.tracks : []
+    const waypoints = data && data.waypoints ? data.waypoints : []
     if (tracks.length === 0 && waypoints.length > 0) {
-      lines.push('无轨迹线，仅路点');
-      lines.push('路点数：' + waypoints.length);
+      lines.push('无轨迹线，仅路点')
+      lines.push('路点数：' + waypoints.length)
       if (waypoints.length) {
-        lines.push('首点：' + formatCoord(waypoints[0]));
-        if (waypoints.length > 1) lines.push('末点：' + formatCoord(waypoints[waypoints.length - 1]));
+        lines.push('首点：' + formatCoord(waypoints[0]))
+        if (waypoints.length > 1)
+          lines.push('末点：' + formatCoord(waypoints[waypoints.length - 1]))
       }
     } else if (tracks.length > 0) {
-      lines.push('轨迹数：' + tracks.length);
+      lines.push('轨迹数：' + tracks.length)
       tracks.forEach(function (tr, i) {
-        const pts = tr.points || [];
-        lines.push('  轨迹 ' + (i + 1) + '：' + pts.length + ' 点');
+        const pts = tr.points || []
+        lines.push('  轨迹 ' + (i + 1) + '：' + pts.length + ' 点')
         if (pts.length) {
-          lines.push('    起点：' + formatCoord(pts[0]));
-          if (pts.length > 1) lines.push('    终点：' + formatCoord(pts[pts.length - 1]));
+          lines.push('    起点：' + formatCoord(pts[0]))
+          if (pts.length > 1) lines.push('    终点：' + formatCoord(pts[pts.length - 1]))
         }
-      });
-      if (waypoints.length) lines.push('路点数：' + waypoints.length);
+      })
+      if (waypoints.length) lines.push('路点数：' + waypoints.length)
     } else {
-      lines.push('未解析到轨迹或路点。');
+      lines.push('未解析到轨迹或路点。')
     }
     if (waypointsOnlyHint) {
-      previewContent.textContent = '';
-      const hintEl = document.createElement('span');
-      hintEl.className = 'waypoints-only';
-      hintEl.textContent = waypointsOnlyHint;
-      previewContent.appendChild(hintEl);
-      previewContent.appendChild(document.createTextNode('\n' + lines.join('\n')));
+      previewContent.textContent = ''
+      const hintEl = document.createElement('span')
+      hintEl.className = 'waypoints-only'
+      hintEl.textContent = waypointsOnlyHint
+      previewContent.appendChild(hintEl)
+      previewContent.appendChild(document.createTextNode('\n' + lines.join('\n')))
     } else {
-      previewContent.textContent = lines.join('\n');
+      previewContent.textContent = lines.join('\n')
     }
   }
 
   function renderMapPreview(data) {
-    if (!mapPreviewEl || typeof L === 'undefined') return;
-    const tracks = (data && data.tracks) ? data.tracks : [];
-    const waypoints = (data && data.waypoints) ? data.waypoints : [];
-    const allPoints = [];
+    if (!mapPreviewEl || typeof L === 'undefined') return
+    const tracks = data && data.tracks ? data.tracks : []
+    const waypoints = data && data.waypoints ? data.waypoints : []
+    const allPoints = []
     tracks.forEach(function (t) {
-      (t.points || []).forEach(function (p) {
-        allPoints.push([p.lat, p.lon]);
-      });
-    });
+      ;(t.points || []).forEach(function (p) {
+        allPoints.push([p.lat, p.lon])
+      })
+    })
     waypoints.forEach(function (p) {
-      allPoints.push([p.lat, p.lon]);
-    });
+      allPoints.push([p.lat, p.lon])
+    })
     if (allPoints.length === 0) {
       if (mapLayerGroup) {
-        mapLayerGroup.clearLayers();
-        if (mapInstance) mapInstance.fitWorld();
+        mapLayerGroup.clearLayers()
+        if (mapInstance) mapInstance.fitWorld()
       }
-      return;
+      return
     }
     if (!mapInstance) {
-      mapInstance = L.map(mapPreviewEl, { center: [allPoints[0][0], allPoints[0][1]], zoom: 12 });
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-      }).addTo(mapInstance);
-      mapLayerGroup = L.layerGroup().addTo(mapInstance);
+      mapInstance = L.map(mapPreviewEl, { center: [allPoints[0][0], allPoints[0][1]], zoom: 12 })
+      L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri'
+        }
+      ).addTo(mapInstance)
+      mapLayerGroup = L.layerGroup().addTo(mapInstance)
     }
-    mapLayerGroup.clearLayers();
+    mapLayerGroup.clearLayers()
     tracks.forEach(function (tr, ti) {
-      const pts = (tr.points || []).map(function (p) { return [p.lat, p.lon]; });
+      const pts = (tr.points || []).map(function (p) {
+        return [p.lat, p.lon]
+      })
       if (pts.length < 2) {
         if (pts.length) {
-          L.circleMarker(pts[0], { radius: 8, fillColor: '#2e7d32', color: '#fff', weight: 2, fillOpacity: 1 })
+          L.circleMarker(pts[0], {
+            radius: 8,
+            fillColor: '#2e7d32',
+            color: '#fff',
+            weight: 2,
+            fillOpacity: 1
+          })
             .bindPopup(popupText('起点'))
-            .addTo(mapLayerGroup);
+            .addTo(mapLayerGroup)
         }
-        return;
+        return
       }
-      L.polyline(pts, { color: '#1976d2', weight: 4, opacity: 0.9 }).addTo(mapLayerGroup);
-      L.circleMarker(pts[0], { radius: 8, fillColor: '#2e7d32', color: '#fff', weight: 2, fillOpacity: 1 })
+      L.polyline(pts, { color: '#1976d2', weight: 4, opacity: 0.9 }).addTo(mapLayerGroup)
+      L.circleMarker(pts[0], {
+        radius: 8,
+        fillColor: '#2e7d32',
+        color: '#fff',
+        weight: 2,
+        fillOpacity: 1
+      })
         .bindPopup(popupText('起点'))
-        .addTo(mapLayerGroup);
-      L.circleMarker(pts[pts.length - 1], { radius: 8, fillColor: '#c62828', color: '#fff', weight: 2, fillOpacity: 1 })
+        .addTo(mapLayerGroup)
+      L.circleMarker(pts[pts.length - 1], {
+        radius: 8,
+        fillColor: '#c62828',
+        color: '#fff',
+        weight: 2,
+        fillOpacity: 1
+      })
         .bindPopup(popupText('终点'))
-        .addTo(mapLayerGroup);
-    });
+        .addTo(mapLayerGroup)
+    })
     if (tracks.length === 0 && waypoints.length > 0) {
       waypoints.forEach(function (p, i) {
-        var wpColor = waypoints.length >= 2 && i === 0 ? '#2e7d32' : (waypoints.length >= 2 && i === waypoints.length - 1 ? '#c62828' : '#ff9800');
-        L.circleMarker([p.lat, p.lon], { radius: 6, fillColor: wpColor, color: '#fff', weight: 2, fillOpacity: 1 })
-          .bindPopup(popupText(p.name || (i === 0 ? '起点' : (i === waypoints.length - 1 ? '终点' : '路点 ' + (i + 1)))))
-          .addTo(mapLayerGroup);
-      });
+        var wpColor =
+          waypoints.length >= 2 && i === 0
+            ? '#2e7d32'
+            : waypoints.length >= 2 && i === waypoints.length - 1
+              ? '#c62828'
+              : '#ff9800'
+        L.circleMarker([p.lat, p.lon], {
+          radius: 6,
+          fillColor: wpColor,
+          color: '#fff',
+          weight: 2,
+          fillOpacity: 1
+        })
+          .bindPopup(
+            popupText(
+              p.name || (i === 0 ? '起点' : i === waypoints.length - 1 ? '终点' : '路点 ' + (i + 1))
+            )
+          )
+          .addTo(mapLayerGroup)
+      })
     } else {
       waypoints.forEach(function (p, i) {
-        L.circleMarker([p.lat, p.lon], { radius: 6, fillColor: '#ff9800', color: '#fff', weight: 2, fillOpacity: 1 })
-          .bindPopup(popupText(p.name || ('路点 ' + (i + 1))))
-          .addTo(mapLayerGroup);
-      });
+        L.circleMarker([p.lat, p.lon], {
+          radius: 6,
+          fillColor: '#ff9800',
+          color: '#fff',
+          weight: 2,
+          fillOpacity: 1
+        })
+          .bindPopup(popupText(p.name || '路点 ' + (i + 1)))
+          .addTo(mapLayerGroup)
+      })
     }
-    const bounds = L.latLngBounds(allPoints);
+    const bounds = L.latLngBounds(allPoints)
     if (mapInstance) {
-      mapInstance.invalidateSize();
-      mapInstance.fitBounds(bounds.pad(0.15));
+      mapInstance.invalidateSize()
+      mapInstance.fitBounds(bounds.pad(0.15))
     }
   }
 
   function parseFile(text, direction) {
-    const doc = parseXml(text);
-    if (direction === 'gpx2kml' || direction === 'gpx2kmz') return typeof parseGpx === 'function' ? parseGpx(doc) : { tracks: [], waypoints: [] };
-    return typeof parseKml === 'function' ? parseKml(doc) : { tracks: [], waypoints: [] };
+    const doc = parseXml(text)
+    if (direction === 'gpx2kml' || direction === 'gpx2kmz')
+      return typeof parseGpx === 'function' ? parseGpx(doc) : { tracks: [], waypoints: [] }
+    return typeof parseKml === 'function' ? parseKml(doc) : { tracks: [], waypoints: [] }
   }
 
   function parseXml(text) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/xml');
-    const rootName = doc.documentElement ? (doc.documentElement.localName || doc.documentElement.nodeName || '').toLowerCase() : '';
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(text, 'text/xml')
+    const rootName = doc.documentElement
+      ? (doc.documentElement.localName || doc.documentElement.nodeName || '').toLowerCase()
+      : ''
     if (rootName === 'parsererror' || doc.getElementsByTagName('parsererror').length > 0) {
-      throw new Error('XML 格式无效，请检查文件内容。');
+      throw new Error('XML 格式无效，请检查文件内容。')
     }
-    return doc;
+    return doc
   }
 
   function getKmlFromKmz(arrayBuffer) {
-    if (typeof JSZip === 'undefined') return Promise.reject(new Error('未加载 JSZip'));
+    if (typeof JSZip === 'undefined') return Promise.reject(new Error('未加载 JSZip'))
     return new JSZip().loadAsync(arrayBuffer).then(function (zip) {
-      var names = Object.keys(zip.files).filter(function (n) { return !zip.files[n].dir && n.toLowerCase().endsWith('.kml'); });
-      var kmlName = names[0];
-      if (!kmlName) return Promise.reject(new Error('KMZ 中未找到 KML 文件'));
-      return zip.files[kmlName].async('string');
-    });
+      var names = Object.keys(zip.files).filter(function (n) {
+        return !zip.files[n].dir && n.toLowerCase().endsWith('.kml')
+      })
+      var kmlName = names[0]
+      if (!kmlName) return Promise.reject(new Error('KMZ 中未找到 KML 文件'))
+      return zip.files[kmlName].async('string')
+    })
   }
 
   function getOutputExt(direction) {
-    if (direction === 'gpx2kml' || direction === 'kmz2kml') return 'kml';
-    if (direction === 'kml2gpx' || direction === 'kmz2gpx') return 'gpx';
-    if (direction === 'gpx2kmz' || direction === 'kml2kmz') return 'kmz';
-    return 'kml';
+    if (direction === 'gpx2kml' || direction === 'kmz2kml') return 'kml'
+    if (direction === 'kml2gpx' || direction === 'kmz2gpx') return 'gpx'
+    if (direction === 'gpx2kmz' || direction === 'kml2kmz') return 'kmz'
+    return 'kml'
   }
 
   function isKmzOutput(direction) {
-    return direction === 'gpx2kmz' || direction === 'kml2kmz';
+    return direction === 'gpx2kmz' || direction === 'kml2kmz'
   }
 
   function canConvert(data) {
-    const tracks = (data && data.tracks) ? data.tracks : [];
-    const waypoints = (data && data.waypoints) ? data.waypoints : [];
-    if (waypoints.length > 0 && tracks.length === 0) return true;
+    const tracks = data && data.tracks ? data.tracks : []
+    const waypoints = data && data.waypoints ? data.waypoints : []
+    if (waypoints.length > 0 && tracks.length === 0) return true
     for (let i = 0; i < tracks.length; i++) {
-      const pts = tracks[i].points || [];
-      if (pts.length >= 2) return true;
-      if (pts.length === 1 && waypoints.length === 0 && tracks.length === 1) return false;
+      const pts = tracks[i].points || []
+      if (pts.length >= 2) return true
+      if (pts.length === 1 && waypoints.length === 0 && tracks.length === 1) return false
     }
-    return tracks.some(function (t) { return (t.points || []).length >= 2; });
+    return tracks.some(function (t) {
+      return (t.points || []).length >= 2
+    })
   }
 
   function isWaypointsOnly(data) {
-    const tracks = (data && data.tracks) ? data.tracks : [];
-    const waypoints = (data && data.waypoints) ? data.waypoints : [];
-    return tracks.length === 0 && waypoints.length > 0;
+    const tracks = data && data.tracks ? data.tracks : []
+    const waypoints = data && data.waypoints ? data.waypoints : []
+    return tracks.length === 0 && waypoints.length > 0
   }
 
   function getInputType(file) {
-    var n = (file.name || '').toLowerCase();
-    if (n.endsWith('.gpx')) return 'gpx';
-    if (n.endsWith('.kmz')) return 'kmz';
-    if (n.endsWith('.kml')) return 'kml';
-    return '';
+    var n = (file.name || '').toLowerCase()
+    if (n.endsWith('.gpx')) return 'gpx'
+    if (n.endsWith('.kmz')) return 'kmz'
+    if (n.endsWith('.kml')) return 'kml'
+    return ''
   }
 
   function getDirectionInputType(direction) {
-    if (direction === 'gpx2kml' || direction === 'gpx2kmz') return 'gpx';
-    if (direction === 'kml2gpx' || direction === 'kml2kmz') return 'kml';
-    if (direction === 'kmz2kml' || direction === 'kmz2gpx') return 'kmz';
-    return '';
+    if (direction === 'gpx2kml' || direction === 'gpx2kmz') return 'gpx'
+    if (direction === 'kml2gpx' || direction === 'kml2kmz') return 'kml'
+    if (direction === 'kmz2kml' || direction === 'kmz2gpx') return 'kmz'
+    return ''
   }
 
   function loadFileData(file, direction) {
-    var name = (file.name || '').toLowerCase();
+    var name = (file.name || '').toLowerCase()
     if (name.endsWith('.kmz')) {
       return new Promise(function (resolve, reject) {
-        var reader = new FileReader();
+        var reader = new FileReader()
         reader.onload = function () {
-          getKmlFromKmz(reader.result).then(function (kmlText) {
-            var doc = parseXml(kmlText);
-            resolve(typeof parseKml === 'function' ? parseKml(doc) : { tracks: [], waypoints: [] });
-          }).catch(reject);
-        };
-        reader.onerror = function () { reject(new Error('读取文件失败')); };
-        reader.readAsArrayBuffer(file);
-      });
+          getKmlFromKmz(reader.result)
+            .then(function (kmlText) {
+              var doc = parseXml(kmlText)
+              resolve(
+                typeof parseKml === 'function' ? parseKml(doc) : { tracks: [], waypoints: [] }
+              )
+            })
+            .catch(reject)
+        }
+        reader.onerror = function () {
+          reject(new Error('读取文件失败'))
+        }
+        reader.readAsArrayBuffer(file)
+      })
     }
     return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
+      var reader = new FileReader()
       reader.onload = function () {
         try {
-          resolve(parseFile(reader.result, direction));
+          resolve(parseFile(reader.result, direction))
         } catch (e) {
-          reject(e);
+          reject(e)
         }
-      };
-      reader.onerror = function () { reject(new Error('读取文件失败')); };
-      reader.readAsText(file, 'UTF-8');
-    });
+      }
+      reader.onerror = function () {
+        reject(new Error('读取文件失败'))
+      }
+      reader.readAsText(file, 'UTF-8')
+    })
   }
 
   function resolveDirection(file) {
-    var n = (file.name || '').toLowerCase();
-    if (convertDirection.value !== 'auto') return convertDirection.value;
-    if (n.endsWith('.gpx')) return 'gpx2kml';
-    if (n.endsWith('.kmz')) return 'kmz2kml';
-    return 'kml2gpx';
+    var n = (file.name || '').toLowerCase()
+    if (convertDirection.value !== 'auto') return convertDirection.value
+    if (n.endsWith('.gpx')) return 'gpx2kml'
+    if (n.endsWith('.kmz')) return 'kmz2kml'
+    return 'kml2gpx'
   }
 
   function validateDirectionForFile(file, direction) {
-    var expected = getDirectionInputType(direction);
-    var actual = getInputType(file);
+    var expected = getDirectionInputType(direction)
+    var actual = getInputType(file)
     if (expected && actual && expected !== actual) {
-      throw new Error('转换方向与文件类型不匹配：' + file.name);
+      throw new Error('转换方向与文件类型不匹配：' + file.name)
     }
   }
 
   function triggerDownload(blob, filename) {
-    var a = document.createElement('a');
-    var url = URL.createObjectURL(blob);
-    a.href = url;
-    a.download = filename;
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+    var a = document.createElement('a')
+    var url = URL.createObjectURL(blob)
+    a.href = url
+    a.download = filename
+    a.click()
+    setTimeout(function () {
+      URL.revokeObjectURL(url)
+    }, 0)
   }
 
   function downloadRecord(rec) {
-    if (!rec || !rec.output) return;
+    if (!rec || !rec.output) return
     if (rec.isKmz && typeof JSZip !== 'undefined') {
-      new JSZip().file('doc.kml', rec.output).generateAsync({ type: 'blob' }).then(function (blob) {
-        triggerDownload(blob, rec.download);
-      });
+      new JSZip()
+        .file('doc.kml', rec.output)
+        .generateAsync({ type: 'blob' })
+        .then(function (blob) {
+          triggerDownload(blob, rec.download)
+        })
     } else {
-      triggerDownload(new Blob([rec.output], { type: 'application/xml;charset=utf-8' }), rec.download);
+      triggerDownload(
+        new Blob([rec.output], { type: 'application/xml;charset=utf-8' }),
+        rec.download
+      )
     }
   }
 
   function setBatchRow(row, fileName, meta, outputIndex) {
-    row.textContent = '';
-    const nameEl = document.createElement('span');
-    nameEl.className = 'file-name';
-    nameEl.textContent = fileName || '';
-    const metaEl = document.createElement('span');
-    metaEl.className = 'file-meta';
-    metaEl.textContent = meta;
-    row.appendChild(nameEl);
-    row.appendChild(metaEl);
+    row.textContent = ''
+    const nameEl = document.createElement('span')
+    nameEl.className = 'file-name'
+    nameEl.textContent = fileName || ''
+    const metaEl = document.createElement('span')
+    metaEl.className = 'file-meta'
+    metaEl.textContent = meta
+    row.appendChild(nameEl)
+    row.appendChild(metaEl)
     if (outputIndex != null) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = '下载';
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.textContent = '下载'
       button.addEventListener('click', function () {
-        downloadRecord(batchOutputs[outputIndex]);
-      });
-      row.appendChild(button);
+        downloadRecord(batchOutputs[outputIndex])
+      })
+      row.appendChild(button)
     }
   }
 
   function setBatchRowError(row, fileName, message) {
-    row.textContent = '';
-    const nameEl = document.createElement('span');
-    nameEl.className = 'file-name';
-    nameEl.textContent = fileName || '';
-    const metaEl = document.createElement('span');
-    metaEl.className = 'file-meta error';
-    metaEl.textContent = message || '解析失败';
-    row.appendChild(nameEl);
-    row.appendChild(metaEl);
+    row.textContent = ''
+    const nameEl = document.createElement('span')
+    nameEl.className = 'file-name'
+    nameEl.textContent = fileName || ''
+    const metaEl = document.createElement('span')
+    metaEl.className = 'file-meta error'
+    metaEl.textContent = message || '解析失败'
+    row.appendChild(nameEl)
+    row.appendChild(metaEl)
   }
 
   function handleFiles(files) {
-    if (!files || files.length === 0) return;
-    const list = [];
+    if (!files || files.length === 0) return
+    const list = []
     for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      const name = (f.name || '').toLowerCase();
-      if (!name.endsWith('.kml') && !name.endsWith('.gpx') && !name.endsWith('.kmz')) continue;
-      list.push(f);
+      const f = files[i]
+      const name = (f.name || '').toLowerCase()
+      if (!name.endsWith('.kml') && !name.endsWith('.gpx') && !name.endsWith('.kmz')) continue
+      list.push(f)
     }
     if (list.length === 0) {
-      setStatus('请选择 .kml、.kmz 或 .gpx 文件。', 'error');
-      return;
+      setStatus('请选择 .kml、.kmz 或 .gpx 文件。', 'error')
+      return
     }
-    selectedFiles = list;
-    convertBtn.disabled = list.length !== 1;
+    selectedFiles = list
+    convertBtn.disabled = list.length !== 1
     if (list.length === 1) {
-      setStatus('已选择：' + list[0].name, 'success');
-      previewSection.hidden = false;
-      batchSection.hidden = true;
-      var dir = resolveDirection(list[0]);
-      loadFileData(list[0], dir).then(function (data) {
-        renderPreview(data, isWaypointsOnly(data) ? '无轨迹线，仅路点。' : null);
-        renderMapPreview(data);
-      }).catch(function (e) {
-        previewContent.textContent = '预览解析失败：' + (e.message || String(e));
-        if (mapLayerGroup) mapLayerGroup.clearLayers();
-      });
+      setStatus('已选择：' + list[0].name, 'success')
+      previewSection.hidden = false
+      batchSection.hidden = true
+      var dir = resolveDirection(list[0])
+      loadFileData(list[0], dir)
+        .then(function (data) {
+          renderPreview(data, isWaypointsOnly(data) ? '无轨迹线，仅路点。' : null)
+          renderMapPreview(data)
+        })
+        .catch(function (e) {
+          previewContent.textContent = '预览解析失败：' + (e.message || String(e))
+          if (mapLayerGroup) mapLayerGroup.clearLayers()
+        })
     } else {
-      setStatus('已选择 ' + list.length + ' 个文件。请在下方批量结果中查看并下载。', 'success');
-      previewSection.hidden = true;
-      batchSection.hidden = false;
-      batchList.innerHTML = '';
-      batchOutputs = [];
-      let done = 0;
-      let failed = 0;
+      setStatus('已选择 ' + list.length + ' 个文件。请在下方批量结果中查看并下载。', 'success')
+      previewSection.hidden = true
+      batchSection.hidden = false
+      batchList.innerHTML = ''
+      batchOutputs = []
+      let done = 0
+      let failed = 0
       list.forEach(function (file, idx) {
-        const row = document.createElement('div');
-        row.className = 'batch-item';
-        const dir = resolveDirection(file);
-        const ext = getOutputExt(dir);
-        const base = (file.name || '').replace(/\.(kml|kmz|gpx)$/i, '');
-        batchOutputs[idx] = null;
+        const row = document.createElement('div')
+        row.className = 'batch-item'
+        const dir = resolveDirection(file)
+        const ext = getOutputExt(dir)
+        const base = (file.name || '').replace(/\.(kml|kmz|gpx)$/i, '')
+        batchOutputs[idx] = null
         try {
-          validateDirectionForFile(file, dir);
+          validateDirectionForFile(file, dir)
         } catch (e) {
-          setBatchRowError(row, file.name, e.message || String(e));
-          batchList.appendChild(row);
-          done++;
-          failed++;
-          if (done === list.length) setStatus('批量处理完成，部分文件需要检查。', 'error');
-          return;
+          setBatchRowError(row, file.name, e.message || String(e))
+          batchList.appendChild(row)
+          done++
+          failed++
+          if (done === list.length) setStatus('批量处理完成，部分文件需要检查。', 'error')
+          return
         }
-        loadFileData(file, dir).then(function (data) {
-          if (!canConvert(data)) throw new Error('至少需要 2 个轨迹点或若干路点');
-          var waypointsOnly = isWaypointsOnly(data);
-          var meta = waypointsOnly
-            ? '仅路点 ' + (data.waypoints || []).length + ' 个'
-            : (data.tracks || []).length + ' 条轨迹，共 ' + (data.tracks || []).reduce(function (s, t) { return s + (t.points || []).length; }, 0) + ' 点';
-          var opts = getBuildOpts();
-          var out = (dir === 'gpx2kml' || dir === 'gpx2kmz' || dir === 'kmz2kml') ? (typeof buildKml === 'function' ? buildKml(data, opts) : '') : (typeof buildGpx === 'function' ? buildGpx(data, opts) : '');
-          batchOutputs[idx] = { download: base + '.' + ext, output: out, isKmz: ext === 'kmz' };
-          setBatchRow(row, file.name, meta, idx);
-        }).catch(function (e) {
-          failed++;
-          setBatchRowError(row, file.name, e.message || '解析失败');
-        }).then(function () {
-          done++;
-          if (done === list.length) {
-            setStatus(failed ? '批量处理完成，部分文件需要检查。' : '已就绪，可逐一下载。', failed ? 'error' : 'success');
-          }
-        });
-        setBatchRow(row, file.name, '处理中…');
-        batchList.appendChild(row);
-      });
+        loadFileData(file, dir)
+          .then(function (data) {
+            if (!canConvert(data)) throw new Error('至少需要 2 个轨迹点或若干路点')
+            var waypointsOnly = isWaypointsOnly(data)
+            var meta = waypointsOnly
+              ? '仅路点 ' + (data.waypoints || []).length + ' 个'
+              : (data.tracks || []).length +
+                ' 条轨迹，共 ' +
+                (data.tracks || []).reduce(function (s, t) {
+                  return s + (t.points || []).length
+                }, 0) +
+                ' 点'
+            var opts = getBuildOpts()
+            var out =
+              dir === 'gpx2kml' || dir === 'gpx2kmz' || dir === 'kmz2kml'
+                ? typeof buildKml === 'function'
+                  ? buildKml(data, opts)
+                  : ''
+                : typeof buildGpx === 'function'
+                  ? buildGpx(data, opts)
+                  : ''
+            batchOutputs[idx] = { download: base + '.' + ext, output: out, isKmz: ext === 'kmz' }
+            setBatchRow(row, file.name, meta, idx)
+          })
+          .catch(function (e) {
+            failed++
+            setBatchRowError(row, file.name, e.message || '解析失败')
+          })
+          .then(function () {
+            done++
+            if (done === list.length) {
+              setStatus(
+                failed ? '批量处理完成，部分文件需要检查。' : '已就绪，可逐一下载。',
+                failed ? 'error' : 'success'
+              )
+            }
+          })
+        setBatchRow(row, file.name, '处理中…')
+        batchList.appendChild(row)
+      })
     }
   }
 
   dropZone.addEventListener('click', function () {
-    fileInput.click();
-  });
+    fileInput.click()
+  })
 
   dropZone.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      fileInput.click();
+      e.preventDefault()
+      fileInput.click()
     }
-  });
+  })
 
   fileInput.addEventListener('change', function () {
-    handleFiles(this.files);
-    this.value = '';
-  });
+    handleFiles(this.files)
+    this.value = ''
+  })
 
   dropZone.addEventListener('dragover', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.add('drag-over');
-  });
+    e.preventDefault()
+    e.stopPropagation()
+    dropZone.classList.add('drag-over')
+  })
 
   dropZone.addEventListener('dragleave', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.remove('drag-over');
-  });
+    e.preventDefault()
+    e.stopPropagation()
+    dropZone.classList.remove('drag-over')
+  })
 
   dropZone.addEventListener('drop', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.remove('drag-over');
-    handleFiles(e.dataTransfer.files);
-  });
+    e.preventDefault()
+    e.stopPropagation()
+    dropZone.classList.remove('drag-over')
+    handleFiles(e.dataTransfer.files)
+  })
 
   convertBtn.addEventListener('click', function () {
-    if (!selectedFiles || selectedFiles.length !== 1) return;
-    const file = selectedFiles[0];
-    let direction = convertDirection.value;
-    const name = (file.name || '').toLowerCase();
+    if (!selectedFiles || selectedFiles.length !== 1) return
+    const file = selectedFiles[0]
+    let direction = convertDirection.value
+    const name = (file.name || '').toLowerCase()
     if (direction === 'auto') {
-      direction = name.endsWith('.gpx') ? 'gpx2kml' : name.endsWith('.kmz') ? 'kmz2kml' : 'kml2gpx';
+      direction = name.endsWith('.gpx') ? 'gpx2kml' : name.endsWith('.kmz') ? 'kmz2kml' : 'kml2gpx'
     }
-    const base = (file.name || '').replace(/\.(kml|kmz|gpx)$/i, '');
-    const ext = getOutputExt(direction);
+    const base = (file.name || '').replace(/\.(kml|kmz|gpx)$/i, '')
+    const ext = getOutputExt(direction)
 
     function doConvert(data) {
       if (!canConvert(data)) {
-        setStatus('至少需要 2 个轨迹点或若干路点才能转换。', 'error');
-        return;
+        setStatus('至少需要 2 个轨迹点或若干路点才能转换。', 'error')
+        return
       }
-      var opts = getBuildOpts();
-      var needKml = (direction === 'gpx2kml' || direction === 'gpx2kmz' || direction === 'kmz2kml' || direction === 'kml2kmz');
-      var needGpx = (direction === 'kml2gpx' || direction === 'kmz2gpx');
-      var kmlStr = needKml && typeof buildKml === 'function' ? buildKml(data, opts) : '';
-      var gpxStr = needGpx && typeof buildGpx === 'function' ? buildGpx(data, opts) : '';
-      var output = needGpx ? gpxStr : kmlStr;
+      var opts = getBuildOpts()
+      var needKml =
+        direction === 'gpx2kml' ||
+        direction === 'gpx2kmz' ||
+        direction === 'kmz2kml' ||
+        direction === 'kml2kmz'
+      var needGpx = direction === 'kml2gpx' || direction === 'kmz2gpx'
+      var kmlStr = needKml && typeof buildKml === 'function' ? buildKml(data, opts) : ''
+      var gpxStr = needGpx && typeof buildGpx === 'function' ? buildGpx(data, opts) : ''
+      var output = needGpx ? gpxStr : kmlStr
 
-      var mapUpdated = false;
+      var mapUpdated = false
       try {
-        var parseAs = (direction === 'kml2gpx' || direction === 'kmz2gpx') ? 'gpx2kml' : 'kml2gpx';
-        var convertedData = parseFile(output, parseAs);
-        renderMapPreview(convertedData);
-        renderPreview(convertedData, isWaypointsOnly(convertedData) ? '无轨迹线，仅路点。（以下为转换结果预览）' : null);
+        var parseAs = direction === 'kml2gpx' || direction === 'kmz2gpx' ? 'gpx2kml' : 'kml2gpx'
+        var convertedData = parseFile(output, parseAs)
+        renderMapPreview(convertedData)
+        renderPreview(
+          convertedData,
+          isWaypointsOnly(convertedData) ? '无轨迹线，仅路点。（以下为转换结果预览）' : null
+        )
         if (!isWaypointsOnly(convertedData)) {
-          previewContent.textContent = '转换结果预览\n' + (previewContent.textContent || '');
+          previewContent.textContent = '转换结果预览\n' + (previewContent.textContent || '')
         }
-        mapUpdated = true;
-      } catch (e) { }
+        mapUpdated = true
+      } catch (e) {}
 
       function buildSuccessMsg(d, basename, extension, withMap) {
-        var wp = isWaypointsOnly(d);
-        var pts = (d.tracks || []).reduce(function (s, t) { return s + (t.points || []).length; }, 0);
-        var m = wp ? '已生成并下载：' + basename + '.' + extension + '（无轨迹线，仅路点 ' + (d.waypoints || []).length + ' 个）' : '已生成并下载：' + basename + '.' + extension + '（' + (d.tracks || []).length + ' 条轨迹，共 ' + pts + ' 点）';
-        return withMap ? m + '。地图已更新为转换结果预览。' : m;
+        var wp = isWaypointsOnly(d)
+        var pts = (d.tracks || []).reduce(function (s, t) {
+          return s + (t.points || []).length
+        }, 0)
+        var m = wp
+          ? '已生成并下载：' +
+            basename +
+            '.' +
+            extension +
+            '（无轨迹线，仅路点 ' +
+            (d.waypoints || []).length +
+            ' 个）'
+          : '已生成并下载：' +
+            basename +
+            '.' +
+            extension +
+            '（' +
+            (d.tracks || []).length +
+            ' 条轨迹，共 ' +
+            pts +
+            ' 点）'
+        return withMap ? m + '。地图已更新为转换结果预览。' : m
       }
 
       if (isKmzOutput(direction) && typeof JSZip !== 'undefined') {
-        new JSZip().file('doc.kml', kmlStr).generateAsync({ type: 'blob' }).then(function (blob) {
-          triggerDownload(blob, base + '.kmz');
-          setStatus(buildSuccessMsg(data, base, 'kmz', mapUpdated), 'success');
-        });
+        new JSZip()
+          .file('doc.kml', kmlStr)
+          .generateAsync({ type: 'blob' })
+          .then(function (blob) {
+            triggerDownload(blob, base + '.kmz')
+            setStatus(buildSuccessMsg(data, base, 'kmz', mapUpdated), 'success')
+          })
       } else {
-        triggerDownload(new Blob([output], { type: 'application/xml;charset=utf-8' }), base + '.' + ext);
-        setStatus(buildSuccessMsg(data, base, ext, mapUpdated), 'success');
+        triggerDownload(
+          new Blob([output], { type: 'application/xml;charset=utf-8' }),
+          base + '.' + ext
+        )
+        setStatus(buildSuccessMsg(data, base, ext, mapUpdated), 'success')
       }
     }
 
     try {
-      validateDirectionForFile(file, direction);
-      loadFileData(file, direction).then(doConvert).catch(function (err) {
-        setStatus('解析失败：' + (err.message || String(err)), 'error');
-      });
+      validateDirectionForFile(file, direction)
+      loadFileData(file, direction)
+        .then(doConvert)
+        .catch(function (err) {
+          setStatus('解析失败：' + (err.message || String(err)), 'error')
+        })
     } catch (err) {
-      setStatus(err.message || String(err), 'error');
+      setStatus(err.message || String(err), 'error')
     }
-  });
-})();
+  })
+})()

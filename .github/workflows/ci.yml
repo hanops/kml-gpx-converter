@@ -19,13 +19,19 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: JavaScript syntax checks
         run: |
           node --check js/parser.js
           node --check js/builder.js
           node --check js/app.js
+
+      - name: Check code formatting
+        run: npx prettier --check .
 
       - name: Required file checks
         run: |
@@ -36,4 +42,3 @@ jobs:
           test -f vendor/leaflet/leaflet.js
           test -f vendor/jszip/jszip.min.js
           test -f tests/parser-builder.html
-

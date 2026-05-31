@@ -1,6 +1,6 @@
 ## Summary
 
-- 
+-
 
 ## Validation
 
@@ -13,4 +13,3 @@
 ## Notes
 
 Mention any data-preservation, browser compatibility, or privacy tradeoffs.
-
