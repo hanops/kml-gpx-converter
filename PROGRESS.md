@@ -2,7 +2,7 @@
 
 记录项目开发过程中的重要变更和决策。
 
-## 2026-05-31 - 设计优化与工程规范完善
+## 2026-05-31 - 设计优化、工程规范与 Vercel 部署
 
 ### 完成内容
 
@@ -46,6 +46,15 @@ CLAUDE.md          # -> AGENTS.md 软链
 
 - `npm run check` ✅
 - `npm run lint` ✅
+
+#### 3. Vercel 部署配置
+
+- **`vercel.json`**：添加部署配置
+  - 空构建命令 + 当前目录输出（纯静态站）
+  - 安全响应头：`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin`
+  - `vendor/` 资源缓存策略：`public, max-age=31536000, immutable`
+- **Vercel Web Analytics**：在 `index.html` 中集成 Vercel 统计脚本
+- **`.gitignore`**：添加 `.vercel` 忽略规则
 
 ---
 

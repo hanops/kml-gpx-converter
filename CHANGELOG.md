@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## V1.1.2 - 2026-05-31
+
+- Refreshed frontend design with warm color palette, Instrument Serif / DM Sans fonts, topographic background texture, and drop zone SVG icons with format hints.
+- Applied Prettier formatting across all source files (HTML, CSS, JS).
+- Added `vercel.json` with security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) and vendor cache policy.
+- Enabled Vercel Web Analytics tracking.
+- Updated project structure documentation with `vercel.json` and `package.json`.
+
 ## V1.1.1 - 2026-05-08
 
 - Made the frontend version display more explicit with a title badge.

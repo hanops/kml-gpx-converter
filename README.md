@@ -2,7 +2,7 @@
 
 纯前端 Web 工具，在浏览器本地完成 **KML**、**KMZ**、**GPX** 三种格式互转。适合把运动轨迹、Google Earth 路线和 GPS 路点文件快速转换成可下载的新文件。
 
-当前版本：**V1.1.1**
+当前版本：**V1.1.2**
 
 ![KML / KMZ / GPX 互转工具主界面](docs/assets/screenshot-main.png)
 
@@ -80,9 +80,8 @@ http://localhost:8080/tests/parser-builder.html
 也可以先做 JavaScript 语法检查：
 
 ```bash
-node --check js/parser.js
-node --check js/builder.js
-node --check js/app.js
+npm run check
+npm run lint
 ```
 
 GitHub Actions 会在 `main` 推送和 Pull Request 时运行基础校验。
@@ -101,6 +100,8 @@ kml-gpx-converter/
 │   └── app.js        # 文件选择、预览、批量、KMZ、下载
 ├── vendor/           # 本地化 Leaflet / JSZip 运行时依赖
 ├── tests/            # 浏览器测试页和 fixtures
+├── vercel.json       # Vercel 部署与安全头配置
+├── package.json      # npm scripts（check / lint）
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
 ├── LICENSE

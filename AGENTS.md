@@ -22,6 +22,8 @@ Current release line: **v1.1.x**.
 - `.github/` contains issue templates, the pull request template, and CI.
 - `CONTRIBUTING.md` and `SECURITY.md` define project collaboration and security guidance.
 - `VERSION`, `CHANGELOG.md`, `PROGRESS.md`, and `LICENSE` are release and progress metadata.
+- `vercel.json` configures Vercel deployment and security headers.
+- `package.json` defines npm scripts for syntax checking and formatting.
 
 ## Local Run
 
