@@ -33,11 +33,11 @@ http://localhost:8080
 
 ## 支持格式
 
-| 输入 | 支持内容 |
-| --- | --- |
-| GPX | `trk` / `trkseg` / `trkpt`、`rte` / `rtept`、`wpt` |
-| KML | `LineString`、`gx:Track`、`Point` Placemark |
-| KMZ | 包含 `.kml` 文件的 KMZ 压缩包 |
+| 输入 | 支持内容                                           |
+| ---- | -------------------------------------------------- |
+| GPX  | `trk` / `trkseg` / `trkpt`、`rte` / `rtept`、`wpt` |
+| KML  | `LineString`、`gx:Track`、`Point` Placemark        |
+| KMZ  | 包含 `.kml` 文件的 KMZ 压缩包                      |
 
 输出为标准 KML、GPX 或包含 `doc.kml` 的 KMZ。
 

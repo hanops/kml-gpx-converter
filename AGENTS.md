@@ -21,7 +21,7 @@ Current release line: **v1.1.x**.
 - `vendor/` contains local Leaflet and JSZip runtime dependencies.
 - `.github/` contains issue templates, the pull request template, and CI.
 - `CONTRIBUTING.md` and `SECURITY.md` define project collaboration and security guidance.
-- `VERSION`, `CHANGELOG.md`, and `LICENSE` are release metadata.
+- `VERSION`, `CHANGELOG.md`, `PROGRESS.md`, and `LICENSE` are release and progress metadata.
 
 ## Local Run
 
@@ -39,12 +39,17 @@ http://localhost:8080
 
 ## Validation
 
-Run JavaScript syntax checks:
+Run JavaScript syntax checks and code formatting:
 
 ```bash
-node --check js/parser.js
-node --check js/builder.js
-node --check js/app.js
+npm run check
+npm run lint
+```
+
+Format code with:
+
+```bash
+npm run lint:fix
 ```
 
 Run browser tests by starting a static server and opening:
@@ -57,7 +62,7 @@ The test page should display `OK`.
 
 Also verify the main page loads without browser console errors.
 
-CI runs the same JavaScript syntax checks and required-file checks on pushes to `main` and on pull requests.
+CI runs `npm run check` (JavaScript syntax), `npm run lint` (Prettier formatting), and required-file checks on pushes to `main` and on pull requests.
 
 ## Coding Guidelines
 
@@ -95,10 +100,11 @@ For a release:
 
 1. Update `VERSION`.
 2. Update `CHANGELOG.md`.
-3. Confirm `LICENSE` is present.
-4. Confirm `CONTRIBUTING.md`, `SECURITY.md`, and GitHub templates are current.
-5. Run all `node --check` commands.
-6. Run `tests/parser-builder.html` and confirm `OK`.
-7. Verify the main page loads with no console errors.
-8. Confirm README version and known limits are accurate.
-9. Confirm `docs/assets/screenshot-main.png` matches the current UI.
+3. Update `PROGRESS.md` with the release summary.
+4. Confirm `LICENSE` is present.
+5. Confirm `CONTRIBUTING.md`, `SECURITY.md`, and GitHub templates are current.
+6. Run `npm run check` and `npm run lint`.
+7. Run `tests/parser-builder.html` and confirm `OK`.
+8. Verify the main page loads with no console errors.
+9. Confirm README version and known limits are accurate.
+10. Confirm `docs/assets/screenshot-main.png` matches the current UI.

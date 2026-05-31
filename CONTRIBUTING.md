@@ -24,14 +24,29 @@ Open:
 http://localhost:8080
 ```
 
+## Code Style
+
+This project uses [Prettier](https://prettier.io/) for code formatting.
+
+Before submitting changes, format your code:
+
+```bash
+npm run lint:fix
+```
+
+Check formatting without modifying files:
+
+```bash
+npm run lint
+```
+
 ## Validation
 
 Before submitting changes, run:
 
 ```bash
-node --check js/parser.js
-node --check js/builder.js
-node --check js/app.js
+npm run check
+npm run lint
 ```
 
 Then open:
@@ -60,4 +75,3 @@ For release changes, update:
 - `VERSION`
 - `CHANGELOG.md`
 - README version text, if applicable
-

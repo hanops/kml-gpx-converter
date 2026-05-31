@@ -5,8 +5,8 @@
 Security updates target the latest released version.
 
 | Version | Supported |
-| --- | --- |
-| V1.1.x | Yes |
+| ------- | --------- |
+| V1.1.x  | Yes       |
 
 ## Reporting a Vulnerability
 
@@ -31,4 +31,3 @@ This project is designed to run entirely in the browser:
 - Map tiles are loaded from a network tile provider when map preview is used.
 
 User-supplied file content should be treated as untrusted. UI code should use `textContent` or DOM nodes rather than `innerHTML` when displaying parsed names or metadata.
-
