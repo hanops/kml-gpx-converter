@@ -1,0 +1,20 @@
+{
+  "name": "kml-gpx-converter",
+  "version": "1.1.1",
+  "description": "Pure frontend KML / KMZ / GPX converter",
+  "scripts": {
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
+    "check": "node --check js/parser.js && node --check js/builder.js && node --check js/app.js",
+    "test": "echo 'Open tests/parser-builder.html in a browser to run tests'"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "none",
+    "printWidth": 100
+  }
+}
