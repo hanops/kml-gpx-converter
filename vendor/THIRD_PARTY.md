@@ -19,4 +19,3 @@ This project vendors browser runtime dependencies so the app can run without fet
 - License: MIT or GPLv3
 - Files:
   - `vendor/jszip/jszip.min.js`
-
