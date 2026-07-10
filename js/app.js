@@ -3,14 +3,21 @@
 
   const dropZone = document.getElementById('dropZone')
   const fileInput = document.getElementById('fileInput')
+  const newConversionBtn = document.getElementById('newConversionBtn')
+  const selectionSummary = document.getElementById('selectionSummary')
+  const selectionCount = document.getElementById('selectionCount')
+  const fileQueue = document.getElementById('fileQueue')
+  const clearFilesBtn = document.getElementById('clearFilesBtn')
   const convertDirection = document.getElementById('convertDirection')
   const convertBtn = document.getElementById('convertBtn')
+  const directionHint = document.getElementById('directionHint')
   const statusMessage = document.getElementById('statusMessage')
   const previewSection = document.getElementById('previewSection')
   const previewContent = document.getElementById('previewContent')
   const mapPreviewEl = document.getElementById('mapPreview')
   const batchSection = document.getElementById('batchSection')
   const batchList = document.getElementById('batchList')
+  const downloadAllBtn = document.getElementById('downloadAllBtn')
   const startNameEl = document.getElementById('startName')
   const endNameEl = document.getElementById('endName')
   const preserveTimeEl = document.getElementById('preserveTime')
@@ -19,10 +26,111 @@
   let batchOutputs = []
   let mapInstance = null
   let mapLayerGroup = null
+  let selectionRevision = 0
 
   function setStatus(text, type) {
     statusMessage.textContent = text
     statusMessage.className = 'status-message' + (type ? ' ' + type : '')
+  }
+
+  function formatFileSize(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 1024) return (bytes || 0) + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
+  function formatDirection(direction) {
+    const labels = {
+      gpx2kml: 'GPX → KML',
+      gpx2kmz: 'GPX → KMZ',
+      kml2gpx: 'KML → GPX',
+      kml2kmz: 'KML → KMZ',
+      kmz2kml: 'KMZ → KML',
+      kmz2gpx: 'KMZ → GPX'
+    }
+    return labels[direction] || '自动选择'
+  }
+
+  function renderFileQueue() {
+    if (!selectionSummary || !selectionCount || !fileQueue) return
+    const count = selectedFiles.length
+    selectionSummary.hidden = count === 0
+    selectionCount.textContent =
+      count +
+      ' 个文件 · ' +
+      selectedFiles.reduce(function (total, file) {
+        return total + (file.size || 0)
+      }, 0) +
+      ' B'
+    if (count)
+      selectionCount.textContent =
+        count +
+        ' 个文件 · ' +
+        formatFileSize(
+          selectedFiles.reduce(function (total, file) {
+            return total + (file.size || 0)
+          }, 0)
+        )
+    fileQueue.textContent = ''
+    selectedFiles.forEach(function (file, index) {
+      const item = document.createElement('li')
+      item.className = 'file-queue-item'
+      const details = document.createElement('div')
+      const name = document.createElement('strong')
+      const meta = document.createElement('span')
+      name.textContent = file.name
+      meta.textContent = getInputType(file).toUpperCase() + ' · ' + formatFileSize(file.size)
+      details.appendChild(name)
+      details.appendChild(meta)
+      const remove = document.createElement('button')
+      remove.type = 'button'
+      remove.className = 'remove-file'
+      remove.setAttribute('aria-label', '移除 ' + file.name)
+      remove.textContent = '移除'
+      remove.addEventListener('click', function () {
+        selectedFiles.splice(index, 1)
+        refreshSelection()
+      })
+      item.appendChild(details)
+      item.appendChild(remove)
+      fileQueue.appendChild(item)
+    })
+  }
+
+  function updateDirectionHint() {
+    if (!directionHint) return
+    if (selectedFiles.length === 0) {
+      directionHint.textContent = '选择一个文件后，将自动推荐输出格式。'
+      return
+    }
+    if (selectedFiles.length > 1) {
+      directionHint.textContent = '批量模式会按当前方向逐个处理，并可打包下载。'
+      return
+    }
+    const direction = resolveDirection(selectedFiles[0])
+    directionHint.textContent =
+      convertDirection.value === 'auto'
+        ? '已根据文件类型推荐：' + formatDirection(direction)
+        : '当前选择：' + formatDirection(direction)
+  }
+
+  function resetPreview() {
+    previewSection.hidden = true
+    batchSection.hidden = true
+    batchList.textContent = ''
+    batchOutputs = []
+    if (downloadAllBtn) downloadAllBtn.disabled = true
+    if (mapLayerGroup) mapLayerGroup.clearLayers()
+  }
+
+  function refreshSelection() {
+    selectionRevision++
+    renderFileQueue()
+    updateDirectionHint()
+    convertBtn.disabled = selectedFiles.length !== 1
+    resetPreview()
+    if (selectedFiles.length === 0) setStatus('', '')
+    else handleSelection()
   }
 
   function getBuildOpts() {
@@ -362,6 +470,51 @@
     }
   }
 
+  function downloadAllRecords() {
+    const outputs = batchOutputs.filter(function (rec) {
+      return rec && rec.output
+    })
+    if (!outputs.length) return
+    if (typeof JSZip === 'undefined') {
+      setStatus('无法打包下载：JSZip 未加载。', 'error')
+      return
+    }
+    if (downloadAllBtn) {
+      downloadAllBtn.disabled = true
+      downloadAllBtn.textContent = '正在打包…'
+    }
+    setStatus('正在生成批量下载包…', '')
+    const zip = new JSZip()
+    const pending = outputs.map(function (rec) {
+      if (rec.isKmz) {
+        const kmz = new JSZip()
+        kmz.file('doc.kml', rec.output)
+        return kmz.generateAsync({ type: 'blob' }).then(function (blob) {
+          zip.file(rec.download, blob)
+        })
+      }
+      zip.file(rec.download, rec.output)
+      return Promise.resolve()
+    })
+    Promise.all(pending)
+      .then(function () {
+        return zip.generateAsync({ type: 'blob' })
+      })
+      .then(function (blob) {
+        triggerDownload(blob, 'converted-files.zip')
+        setStatus('已打包 ' + outputs.length + ' 个转换结果。', 'success')
+      })
+      .catch(function (error) {
+        setStatus('打包失败：' + (error.message || String(error)), 'error')
+      })
+      .then(function () {
+        if (downloadAllBtn) {
+          downloadAllBtn.disabled = false
+          downloadAllBtn.textContent = '打包下载全部'
+        }
+      })
+  }
+
   function setBatchRow(row, fileName, meta, outputIndex) {
     row.textContent = ''
     const nameEl = document.createElement('span')
@@ -409,30 +562,39 @@
       return
     }
     selectedFiles = list
-    convertBtn.disabled = list.length !== 1
-    if (list.length === 1) {
-      setStatus('已选择：' + list[0].name, 'success')
+    refreshSelection()
+  }
+
+  function handleSelection() {
+    const revision = selectionRevision
+    if (selectedFiles.length === 1) {
+      const file = selectedFiles[0]
+      setStatus('已选择：' + file.name + '。正在生成预览。', 'success')
       previewSection.hidden = false
       batchSection.hidden = true
-      var dir = resolveDirection(list[0])
-      loadFileData(list[0], dir)
+      var dir = resolveDirection(file)
+      loadFileData(file, dir)
         .then(function (data) {
+          if (revision !== selectionRevision) return
           renderPreview(data, isWaypointsOnly(data) ? '无轨迹线，仅路点。' : null)
           renderMapPreview(data)
+          setStatus('预览已就绪：' + file.name, 'success')
         })
         .catch(function (e) {
+          if (revision !== selectionRevision) return
           previewContent.textContent = '预览解析失败：' + (e.message || String(e))
           if (mapLayerGroup) mapLayerGroup.clearLayers()
         })
     } else {
-      setStatus('已选择 ' + list.length + ' 个文件。请在下方批量结果中查看并下载。', 'success')
+      setStatus('已选择 ' + selectedFiles.length + ' 个文件，正在整理批量转换结果。', 'success')
       previewSection.hidden = true
       batchSection.hidden = false
-      batchList.innerHTML = ''
+      batchList.textContent = ''
       batchOutputs = []
+      if (downloadAllBtn) downloadAllBtn.disabled = true
       let done = 0
       let failed = 0
-      list.forEach(function (file, idx) {
+      selectedFiles.forEach(function (file, idx) {
         const row = document.createElement('div')
         row.className = 'batch-item'
         const dir = resolveDirection(file)
@@ -446,7 +608,7 @@
           batchList.appendChild(row)
           done++
           failed++
-          if (done === list.length) setStatus('批量处理完成，部分文件需要检查。', 'error')
+          if (done === selectedFiles.length) setStatus('批量处理完成，部分文件需要检查。', 'error')
           return
         }
         loadFileData(file, dir)
@@ -479,7 +641,9 @@
           })
           .then(function () {
             done++
-            if (done === list.length) {
+            if (revision === selectionRevision && done === selectedFiles.length) {
+              if (downloadAllBtn)
+                downloadAllBtn.disabled = batchOutputs.filter(Boolean).length === 0
               setStatus(
                 failed ? '批量处理完成，部分文件需要检查。' : '已就绪，可逐一下载。',
                 failed ? 'error' : 'success'
@@ -507,6 +671,25 @@
     handleFiles(this.files)
     this.value = ''
   })
+
+  clearFilesBtn.addEventListener('click', function () {
+    selectedFiles = []
+    refreshSelection()
+  })
+
+  newConversionBtn.addEventListener('click', function () {
+    selectedFiles = []
+    refreshSelection()
+    document.getElementById('converter').scrollIntoView({ behavior: 'smooth', block: 'start' })
+    fileInput.focus()
+  })
+
+  convertDirection.addEventListener('change', function () {
+    updateDirectionHint()
+    if (selectedFiles.length) refreshSelection()
+  })
+
+  downloadAllBtn.addEventListener('click', downloadAllRecords)
 
   dropZone.addEventListener('dragover', function (e) {
     e.preventDefault()
