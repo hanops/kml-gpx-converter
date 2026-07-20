@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## V1.2.0 - 2026-07-20
+
+- Added GeoJSON import and export for routes and waypoints.
+- Improved Google Earth KML output with shared styles, route grouping, start/end markers, and `gx:Track` time sequences.
+- Preserved GPX route semantics and track segments when requested.
+- Added conversion readiness checks, compatibility notes, route statistics, privacy editing controls, batch export improvements, and offline map preview.
+- Added installable PWA support with local caching and refreshed the product interface as Route Converter.
+
 ## V1.1.2 - 2026-05-31
 
 - Refreshed frontend design with warm color palette, Instrument Serif / DM Sans fonts, topographic background texture, and drop zone SVG icons with format hints.

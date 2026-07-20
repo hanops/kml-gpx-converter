@@ -2,6 +2,23 @@
 
 记录项目开发过程中的重要变更和决策。
 
+## 2026-07-20 - Route Converter V1.2.0
+
+### 完成内容
+
+- 新增 GeoJSON 导入与导出，支持路线与路点在 KML、KMZ、GPX、GeoJSON 之间转换。
+- KML/KMZ 输出改为 Google Earth 兼容结构，支持共享样式、起终点标记和完整时间序列的 `gx:Track`。
+- 保留 GPX Route 语义与 Track Segment 分段；在未编辑的 KML/KMZ 转换中可保留原始 KML 文本。
+- 增加导出前兼容性检查、路线统计、文件/点数保护、轨迹简化、移除海拔或时间、隐藏首尾与离线地图预览。
+- 完善批量导出、PWA 离线缓存和安装入口；界面品牌更新为 Route Converter，并收敛为单栏转换工作区。
+
+### 验证
+
+- `npm run check`
+- `npm run lint`
+- `npm run build:sites`
+- 浏览器 parser/builder 测试页
+
 ## 2026-05-31 - 设计优化、工程规范与 Vercel 部署
 
 ### 完成内容

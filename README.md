@@ -1,8 +1,8 @@
 # Route Converter
 
-纯前端 Web 工具，在浏览器本地完成 **KML**、**KMZ**、**GPX** 三种格式互转。适合把运动轨迹、Google Earth 路线和 GPS 路点文件快速转换成可下载的新文件。
+纯前端 Web 工具，在浏览器本地完成 **KML**、**KMZ**、**GPX** 与 **GeoJSON** 格式互转。适合把运动轨迹、Google Earth 路线、GPS 路点和 GIS 数据快速转换成可下载的新文件。
 
-当前版本：**V1.1.2**
+当前版本：**V1.2.0**
 
 ![Route Converter main interface](docs/assets/screenshot-main.png)
 
