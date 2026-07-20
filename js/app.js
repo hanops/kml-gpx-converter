@@ -80,12 +80,18 @@
     const labels = {
       gpx2kml: 'GPX → KML',
       gpx2kmz: 'GPX → KMZ',
+      gpx2geojson: 'GPX → GeoJSON',
       kml2gpx: 'KML → GPX',
       kml2kmz: 'KML → KMZ',
+      kml2geojson: 'KML → GeoJSON',
       kmz2kml: 'KMZ → KML',
-      kmz2gpx: 'KMZ → GPX'
+      kmz2gpx: 'KMZ → GPX',
+      kmz2geojson: 'KMZ → GeoJSON',
+      geojson2kml: 'GeoJSON → KML',
+      geojson2kmz: 'GeoJSON → KMZ',
+      geojson2gpx: 'GeoJSON → GPX'
     }
-    return labels[direction] || '自动选择'
+    return labels[direction] || 'Auto-select'
   }
 
   function renderFileQueue() {
@@ -94,7 +100,7 @@
     selectionSummary.hidden = count === 0
     selectionCount.textContent =
       count +
-      ' 个文件 · ' +
+      (count === 1 ? ' file · ' : ' files · ') +
       selectedFiles.reduce(function (total, file) {
         return total + (file.size || 0)
       }, 0) +
@@ -102,7 +108,7 @@
     if (count)
       selectionCount.textContent =
         count +
-        ' 个文件 · ' +
+        (count === 1 ? ' file · ' : ' files · ') +
         formatFileSize(
           selectedFiles.reduce(function (total, file) {
             return total + (file.size || 0)
@@ -122,8 +128,8 @@
       const remove = document.createElement('button')
       remove.type = 'button'
       remove.className = 'remove-file'
-      remove.setAttribute('aria-label', '移除 ' + file.name)
-      remove.textContent = '移除'
+      remove.setAttribute('aria-label', 'Remove ' + file.name)
+      remove.textContent = 'Remove'
       remove.addEventListener('click', function () {
         selectedFiles.splice(index, 1)
         refreshSelection()
@@ -137,21 +143,21 @@
   function updateDirectionHint() {
     if (!directionHint) return
     if (selectedFiles.length === 0) {
-      directionHint.textContent = '选择一个文件后，将自动推荐输出格式。'
-      convertBtn.textContent = '转换并下载'
+      directionHint.textContent = 'Add a file to get a recommended output format.'
+      convertBtn.textContent = 'Convert & download'
       return
     }
     if (selectedFiles.length > 1) {
-      directionHint.textContent = '批量模式会按当前方向逐个处理，并可打包下载。'
-      convertBtn.textContent = '批量转换已就绪'
+      directionHint.textContent = 'Batch mode processes each file with the selected direction.'
+      convertBtn.textContent = 'Batch conversion ready'
       return
     }
     const direction = resolveDirection(selectedFiles[0])
     directionHint.textContent =
       convertDirection.value === 'auto'
-        ? '已根据文件类型推荐：' + formatDirection(direction)
-        : '当前选择：' + formatDirection(direction)
-    convertBtn.textContent = '转换为 ' + getOutputExt(direction).toUpperCase() + ' 并下载'
+        ? 'Recommended from the file type: ' + formatDirection(direction)
+        : 'Selected: ' + formatDirection(direction)
+    convertBtn.textContent = 'Convert to ' + getOutputExt(direction).toUpperCase() + ' & download'
   }
 
   function formatDistance(meters) {
@@ -299,28 +305,37 @@
         return point.ele != null
       })
     })
-    items.push('输入：' + input.toUpperCase() + '；输出：' + output.toUpperCase())
+    items.push('Input: ' + input.toUpperCase() + ' · Output: ' + output.toUpperCase())
     if (input === 'kml' || input === 'kmz') {
       items.push(
         output === 'gpx'
-          ? 'KML 样式、图标与文件夹层级不会写入 GPX。'
-          : 'Google Earth 样式会以工具默认样式重新生成。'
+          ? 'KML styles, icons, and folder hierarchy cannot be written to GPX.'
+          : 'Google Earth styling will be regenerated with Route Converter defaults.'
       )
     }
     if (hasTimes)
-      items.push(preserveTimeEl && preserveTimeEl.checked ? '时间戳将保留。' : '时间戳将被移除。')
+      items.push(
+        preserveTimeEl && preserveTimeEl.checked
+          ? 'Timestamps will be preserved.'
+          : 'Timestamps will be removed.'
+      )
     if (hasElevation)
-      items.push(stripElevationEl && stripElevationEl.checked ? '海拔将被移除。' : '海拔将保留。')
+      items.push(
+        stripElevationEl && stripElevationEl.checked
+          ? 'Elevation data will be removed.'
+          : 'Elevation data will be preserved.'
+      )
     if (simplifyToleranceEl && Number(simplifyToleranceEl.value))
-      items.push('轨迹点将按当前简化阈值压缩。')
-    if (trimEndpointsEl && trimEndpointsEl.checked) items.push('首尾各约 200 米将被移除。')
+      items.push('Track points will be reduced using the current simplification threshold.')
+    if (trimEndpointsEl && trimEndpointsEl.checked)
+      items.push('Approximately 200 metres will be removed from each endpoint.')
     compatibilityList.textContent = ''
     items.forEach(function (text) {
       const item = document.createElement('li')
       item.textContent = text
       compatibilityList.appendChild(item)
     })
-    compatibilityBadge.textContent = '已检查'
+    compatibilityBadge.textContent = 'Checked'
     compatibilityBadge.className = 'readiness-badge ready'
     compatibilitySection.hidden = false
   }
@@ -331,7 +346,7 @@
     const ready = canConvert(data)
     setWorkflowStep('inspect')
     inspectorSection.hidden = false
-    inspectorTitle.textContent = file.name || '路线文件'
+    inspectorTitle.textContent = file.name || 'Route file'
     trackCount.textContent = summary.tracks
     pointCount.textContent = summary.points
     waypointCount.textContent = summary.waypoints
@@ -343,15 +358,15 @@
       speedValue.textContent = summary.duration
         ? (summary.distance / 1000 / (summary.duration / 3600000)).toFixed(1) + ' km/h'
         : '—'
-    readinessBadge.textContent = ready ? '可转换' : '需要更多数据'
+    readinessBadge.textContent = ready ? 'Ready to convert' : 'More data required'
     readinessBadge.className = 'readiness-badge' + (ready ? ' ready' : ' warning')
     outputPlan.textContent = ready
-      ? '将生成 ' +
+      ? 'A ' +
         getOutputExt(direction).toUpperCase() +
-        ' 文件；轨迹、路点和' +
-        (preserveTimeEl && preserveTimeEl.checked ? '时间戳' : '坐标数据') +
-        '会保留在兼容范围内。'
-      : '未发现足够的轨迹点或路点，暂时无法生成有效转换结果。'
+        ' file will be generated. Tracks, waypoints, and ' +
+        (preserveTimeEl && preserveTimeEl.checked ? 'timestamps' : 'coordinate data') +
+        ' will be preserved where the target format allows.'
+      : 'Not enough track points or waypoints were found to create a valid output.'
   }
 
   function resetPreview() {
@@ -415,27 +430,27 @@
     const tracks = data && data.tracks ? data.tracks : []
     const waypoints = data && data.waypoints ? data.waypoints : []
     if (tracks.length === 0 && waypoints.length > 0) {
-      lines.push('无轨迹线，仅路点')
-      lines.push('路点数：' + waypoints.length)
+      lines.push('Waypoints only — no track line')
+      lines.push('Waypoints: ' + waypoints.length)
       if (waypoints.length) {
-        lines.push('首点：' + formatCoord(waypoints[0]))
+        lines.push('First point: ' + formatCoord(waypoints[0]))
         if (waypoints.length > 1)
-          lines.push('末点：' + formatCoord(waypoints[waypoints.length - 1]))
+          lines.push('Last point: ' + formatCoord(waypoints[waypoints.length - 1]))
       }
     } else if (tracks.length > 0) {
-      lines.push('轨迹数：' + tracks.length)
+      lines.push('Tracks: ' + tracks.length)
       tracks.forEach(function (tr, i) {
         const pts = tr.points || []
-        lines.push('  轨迹 ' + (i + 1) + '：' + pts.length + ' 点')
+        lines.push('  Track ' + (i + 1) + ': ' + pts.length + ' points')
         if (pts.length) {
-          lines.push('    起点：' + formatCoord(pts[0]))
-          if (pts.length > 1) lines.push('    终点：' + formatCoord(pts[pts.length - 1]))
+          lines.push('    Start: ' + formatCoord(pts[0]))
+          if (pts.length > 1) lines.push('    End: ' + formatCoord(pts[pts.length - 1]))
         }
       })
-      if (waypoints.length) lines.push('路点数：' + waypoints.length)
+      if (waypoints.length) lines.push('Waypoints: ' + waypoints.length)
     } else {
       setWorkflowStep('inspect')
-      lines.push('未解析到轨迹或路点。')
+      lines.push('No tracks or waypoints were found.')
     }
     if (waypointsOnlyHint) {
       previewContent.textContent = ''
@@ -495,7 +510,7 @@
             weight: 2,
             fillOpacity: 1
           })
-            .bindPopup(popupText('起点'))
+            .bindPopup(popupText('Start'))
             .addTo(mapLayerGroup)
         }
         return
@@ -508,7 +523,7 @@
         weight: 2,
         fillOpacity: 1
       })
-        .bindPopup(popupText('起点'))
+        .bindPopup(popupText('Start'))
         .addTo(mapLayerGroup)
       L.circleMarker(pts[pts.length - 1], {
         radius: 8,
@@ -517,7 +532,7 @@
         weight: 2,
         fillOpacity: 1
       })
-        .bindPopup(popupText('终点'))
+        .bindPopup(popupText('End'))
         .addTo(mapLayerGroup)
     })
     if (tracks.length === 0 && waypoints.length > 0) {
@@ -537,7 +552,8 @@
         })
           .bindPopup(
             popupText(
-              p.name || (i === 0 ? '起点' : i === waypoints.length - 1 ? '终点' : '路点 ' + (i + 1))
+              p.name ||
+                (i === 0 ? 'Start' : i === waypoints.length - 1 ? 'End' : 'Waypoint ' + (i + 1))
             )
           )
           .addTo(mapLayerGroup)
@@ -551,7 +567,7 @@
           weight: 2,
           fillOpacity: 1
         })
-          .bindPopup(popupText(p.name || '路点 ' + (i + 1)))
+          .bindPopup(popupText(p.name || 'Waypoint ' + (i + 1)))
           .addTo(mapLayerGroup)
       })
     }
@@ -579,19 +595,19 @@
       ? (doc.documentElement.localName || doc.documentElement.nodeName || '').toLowerCase()
       : ''
     if (rootName === 'parsererror' || doc.getElementsByTagName('parsererror').length > 0) {
-      throw new Error('XML 格式无效，请检查文件内容。')
+      throw new Error('Invalid XML. Check the file contents and try again.')
     }
     return doc
   }
 
   function getKmlFromKmz(arrayBuffer) {
-    if (typeof JSZip === 'undefined') return Promise.reject(new Error('未加载 JSZip'))
+    if (typeof JSZip === 'undefined') return Promise.reject(new Error('JSZip is not available.'))
     return new JSZip().loadAsync(arrayBuffer).then(function (zip) {
       var names = Object.keys(zip.files).filter(function (n) {
         return !zip.files[n].dir && n.toLowerCase().endsWith('.kml')
       })
       var kmlName = names[0]
-      if (!kmlName) return Promise.reject(new Error('KMZ 中未找到 KML 文件'))
+      if (!kmlName) return Promise.reject(new Error('No KML file was found inside the KMZ.'))
       return zip.files[kmlName].async('string')
     })
   }
@@ -629,7 +645,9 @@
     }, 0)
     if (count > MAX_POINTS) {
       throw new Error(
-        '轨迹点过多（上限 ' + MAX_POINTS.toLocaleString() + ' 点），请先分割或简化文件。'
+        'This route has too many track points. The limit is ' +
+          MAX_POINTS.toLocaleString() +
+          '; split or simplify the file first.'
       )
     }
   }
@@ -678,7 +696,7 @@
             .catch(reject)
         }
         reader.onerror = function () {
-          reject(new Error('读取文件失败'))
+          reject(new Error('The file could not be read.'))
         }
         reader.readAsArrayBuffer(file)
       })
@@ -695,7 +713,7 @@
         }
       }
       reader.onerror = function () {
-        reject(new Error('读取文件失败'))
+        reject(new Error('The file could not be read.'))
       }
       reader.readAsText(file, 'UTF-8')
     })
@@ -714,7 +732,7 @@
     var expected = getDirectionInputType(direction)
     var actual = getInputType(file)
     if (expected && actual && expected !== actual) {
-      throw new Error('转换方向与文件类型不匹配：' + file.name)
+      throw new Error('The selected conversion direction does not match ' + file.name + '.')
     }
   }
 
@@ -752,14 +770,14 @@
     })
     if (!outputs.length) return
     if (typeof JSZip === 'undefined') {
-      setStatus('无法打包下载：JSZip 未加载。', 'error')
+      setStatus('Unable to create the archive because JSZip is not available.', 'error')
       return
     }
     if (downloadAllBtn) {
       downloadAllBtn.disabled = true
-      downloadAllBtn.textContent = '正在打包…'
+      downloadAllBtn.textContent = 'Creating archive…'
     }
-    setStatus('正在生成批量下载包…', '')
+    setStatus('Creating the batch download archive…', '')
     const zip = new JSZip()
     const pending = outputs.map(function (rec) {
       if (rec.isKmz) {
@@ -778,15 +796,18 @@
       })
       .then(function (blob) {
         triggerDownload(blob, 'converted-files.zip')
-        setStatus('已打包 ' + outputs.length + ' 个转换结果。', 'success')
+        setStatus(
+          'Archive ready with ' + outputs.length + (outputs.length === 1 ? ' file.' : ' files.'),
+          'success'
+        )
       })
       .catch(function (error) {
-        setStatus('打包失败：' + (error.message || String(error)), 'error')
+        setStatus('Archive failed: ' + (error.message || String(error)), 'error')
       })
       .then(function () {
         if (downloadAllBtn) {
           downloadAllBtn.disabled = false
-          downloadAllBtn.textContent = '打包下载全部'
+          downloadAllBtn.textContent = 'Download all as ZIP'
         }
       })
   }
@@ -804,7 +825,7 @@
     if (outputIndex != null) {
       const button = document.createElement('button')
       button.type = 'button'
-      button.textContent = '下载'
+      button.textContent = 'Download'
       button.addEventListener('click', function () {
         downloadRecord(batchOutputs[outputIndex])
       })
@@ -819,7 +840,7 @@
     nameEl.textContent = fileName || ''
     const metaEl = document.createElement('span')
     metaEl.className = 'file-meta error'
-    metaEl.textContent = message || '解析失败'
+    metaEl.textContent = message || 'Parsing failed'
     row.appendChild(nameEl)
     row.appendChild(metaEl)
   }
@@ -831,7 +852,7 @@
       const f = files[i]
       const name = (f.name || '').toLowerCase()
       if (f.size > MAX_FILE_BYTES) {
-        setStatus('文件过大（上限 50 MB）：' + f.name, 'error')
+        setStatus('File exceeds the 50 MB limit: ' + f.name, 'error')
         continue
       }
       if (
@@ -845,7 +866,7 @@
       list.push(f)
     }
     if (list.length === 0) {
-      setStatus('请选择 .kml、.kmz、.gpx 或 .geojson 文件。', 'error')
+      setStatus('Choose a .kml, .kmz, .gpx, or .geojson file.', 'error')
       return
     }
     selectedFiles = list
@@ -856,7 +877,7 @@
     const revision = selectionRevision
     if (selectedFiles.length === 1) {
       const file = selectedFiles[0]
-      setStatus('已选择：' + file.name + '。正在生成预览。', 'success')
+      setStatus('Selected ' + file.name + '. Preparing the preview…', 'success')
       previewSection.hidden = false
       batchSection.hidden = true
       var dir = resolveDirection(file)
@@ -866,18 +887,21 @@
           ensurePointLimit(data)
           renderInspector(file, data, dir)
           renderCompatibility(file, data, dir)
-          renderPreview(data, isWaypointsOnly(data) ? '无轨迹线，仅路点。' : null)
+          renderPreview(data, isWaypointsOnly(data) ? 'Waypoints only — no track line.' : null)
           renderMapPreview(data)
-          setStatus('预览已就绪：' + file.name, 'success')
+          setStatus('Preview ready: ' + file.name, 'success')
         })
         .catch(function (e) {
           if (revision !== selectionRevision) return
           if (inspectorSection) inspectorSection.hidden = true
-          previewContent.textContent = '预览解析失败：' + (e.message || String(e))
+          previewContent.textContent = 'Preview failed: ' + (e.message || String(e))
           if (mapLayerGroup) mapLayerGroup.clearLayers()
         })
     } else {
-      setStatus('已选择 ' + selectedFiles.length + ' 个文件，正在整理批量转换结果。', 'success')
+      setStatus(
+        'Selected ' + selectedFiles.length + ' files. Preparing the batch conversion…',
+        'success'
+      )
       previewSection.hidden = true
       batchSection.hidden = false
       batchList.textContent = ''
@@ -899,24 +923,26 @@
           batchList.appendChild(row)
           done++
           failed++
-          if (done === selectedFiles.length) setStatus('批量处理完成，部分文件需要检查。', 'error')
+          if (done === selectedFiles.length)
+            setStatus('Batch processing finished. Some files need attention.', 'error')
           return
         }
         loadFileData(file, dir)
           .then(function (data) {
             ensurePointLimit(data)
-            if (!canConvert(data)) throw new Error('至少需要 2 个轨迹点或若干路点')
+            if (!canConvert(data))
+              throw new Error('At least two track points or one waypoint are required.')
             var waypointsOnly = isWaypointsOnly(data)
             var summary = getRouteSummary(data)
             var meta =
               formatDirection(dir) +
               ' · ' +
               (waypointsOnly
-                ? '仅路点 ' + summary.waypoints + ' 个'
+                ? summary.waypoints + (summary.waypoints === 1 ? ' waypoint' : ' waypoints')
                 : summary.tracks +
-                  ' 条轨迹 · ' +
+                  (summary.tracks === 1 ? ' track · ' : ' tracks · ') +
                   summary.points +
-                  ' 点 · ' +
+                  (summary.points === 1 ? ' point · ' : ' points · ') +
                   formatDistance(summary.distance))
             var opts = getBuildOpts()
             var out = buildOutput(cloneAndPrepareData(data), dir, opts)
@@ -925,7 +951,7 @@
           })
           .catch(function (e) {
             failed++
-            setBatchRowError(row, file.name, e.message || '解析失败')
+            setBatchRowError(row, file.name, e.message || 'Parsing failed')
           })
           .then(function () {
             done++
@@ -933,12 +959,14 @@
               if (downloadAllBtn)
                 downloadAllBtn.disabled = batchOutputs.filter(Boolean).length === 0
               setStatus(
-                failed ? '批量处理完成，部分文件需要检查。' : '已就绪，可逐一下载。',
+                failed
+                  ? 'Batch processing finished. Some files need attention.'
+                  : 'Ready. Download files individually or as a ZIP.',
                 failed ? 'error' : 'success'
               )
             }
           })
-        setBatchRow(row, file.name, '处理中…')
+        setBatchRow(row, file.name, 'Processing…')
         batchList.appendChild(row)
       })
     }
@@ -1028,7 +1056,7 @@
     function doConvert(data) {
       ensurePointLimit(data)
       if (!canConvert(data)) {
-        setStatus('至少需要 2 个轨迹点或若干路点才能转换。', 'error')
+        setStatus('At least two track points or one waypoint are required.', 'error')
         return
       }
       var opts = getBuildOpts()
@@ -1043,10 +1071,12 @@
         renderMapPreview(convertedData)
         renderPreview(
           convertedData,
-          isWaypointsOnly(convertedData) ? '无轨迹线，仅路点。（以下为转换结果预览）' : null
+          isWaypointsOnly(convertedData)
+            ? 'Waypoints only — no track line. The converted result is shown below.'
+            : null
         )
         if (!isWaypointsOnly(convertedData)) {
-          previewContent.textContent = '转换结果预览\n' + (previewContent.textContent || '')
+          previewContent.textContent = 'Converted result\n' + (previewContent.textContent || '')
         }
         mapUpdated = true
       } catch (e) {}
@@ -1057,23 +1087,23 @@
           return s + (t.points || []).length
         }, 0)
         var m = wp
-          ? '已生成并下载：' +
+          ? 'Generated and downloaded ' +
             basename +
             '.' +
             extension +
-            '（无轨迹线，仅路点 ' +
+            ' — waypoints only (' +
             (d.waypoints || []).length +
-            ' 个）'
-          : '已生成并下载：' +
+            ').'
+          : 'Generated and downloaded ' +
             basename +
             '.' +
             extension +
-            '（' +
+            ' (' +
             (d.tracks || []).length +
-            ' 条轨迹，共 ' +
+            ((d.tracks || []).length === 1 ? ' track, ' : ' tracks, ') +
             pts +
-            ' 点）'
-        return withMap ? m + '。地图已更新为转换结果预览。' : m
+            (pts === 1 ? ' point).' : ' points).')
+        return withMap ? m + ' The map now shows the converted result.' : m
       }
 
       if (isKmzOutput(direction) && typeof JSZip !== 'undefined') {
@@ -1100,7 +1130,7 @@
       loadFileData(file, direction)
         .then(doConvert)
         .catch(function (err) {
-          setStatus('解析失败：' + (err.message || String(err)), 'error')
+          setStatus('Parsing failed: ' + (err.message || String(err)), 'error')
         })
     } catch (err) {
       setStatus(err.message || String(err), 'error')
