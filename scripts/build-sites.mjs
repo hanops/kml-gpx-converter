@@ -6,9 +6,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const output = path.join(root, 'dist', 'server', 'index.js')
 const files = [
   'index.html',
+  'manifest.webmanifest',
+  'service-worker.js',
+  'icons/route-studio.svg',
   'css/style.css',
   'js/app.js',
   'js/builder.js',
+  'js/geojson.js',
   'js/parser.js',
   'vendor/jszip/jszip.min.js',
   'vendor/leaflet/leaflet.css',
@@ -21,8 +25,10 @@ const files = [
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
-  '.png': 'image/png'
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml'
 }
 
 const assets = Object.fromEntries(

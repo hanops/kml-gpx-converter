@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KML / GPX / KMZ 互转工具</title>
+    <meta name="theme-color" content="#062a30" />
+    <title>Route Converter | KML / KMZ / GPX / GeoJSON</title>
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/style.css" />
     <script>
@@ -16,174 +18,228 @@
     <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="app-sidebar" aria-label="工作区导航">
-        <div class="sidebar-brand">
-          <span class="brand-orb" aria-hidden="true">⌁</span>
-          <span>Route Studio</span>
+    <div class="container">
+      <header class="hero-header">
+        <div class="hero-globe" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="hero-eyebrow">Google Earth-ready exports</p>
+        <div class="logo-mark" aria-hidden="true">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+            <circle cx="12" cy="9" r="2.5" />
+          </svg>
         </div>
-        <button type="button" id="newConversionBtn" class="new-conversion-btn">＋ 新建转换</button>
-        <nav class="sidebar-nav" aria-label="功能导航">
-          <span class="sidebar-label">工作区</span>
-          <a class="nav-item active" href="#converter">↗ 转换器</a>
-          <a class="nav-item" href="#previewSection">◌ 轨迹预览</a>
-          <a class="nav-item" href="#info">ⓘ 使用说明</a>
-        </nav>
-        <div class="sidebar-footer">
-          <span class="privacy-dot" aria-hidden="true"></span>
-          <span>文件只在此设备处理</span>
+        <div class="title-row">
+          <h1>Route Converter</h1>
+          <span class="version-badge" aria-label="当前版本">V1.1.2</span>
         </div>
-      </aside>
+        <p class="tagline">Convert route data. Keep every detail.</p>
+        <div class="trust-row" aria-label="产品特性">
+          <span>Local &amp; Private</span>
+          <span>Google Earth Ready</span>
+          <span>GeoJSON Support</span>
+          <span>Batch Conversion</span>
+          <span>KMZ Support</span>
+        </div>
+        <div class="hero-utility">
+          <button type="button" id="newConversionBtn" class="new-conversion-btn">
+            开始新的转换
+          </button>
+          <span class="hero-privacy"
+            ><span class="privacy-dot" aria-hidden="true"></span>文件仅在此设备处理</span
+          >
+        </div>
+      </header>
 
-      <div class="container">
-        <header>
-          <div class="logo-mark" aria-hidden="true">
+      <main id="converter">
+        <div class="workspace-intro">
+          <div>
+            <span class="workspace-kicker">Conversion workspace</span>
+            <p>上传文件，检查路线，然后导出给 Google Earth。所有处理都在本机完成。</p>
+          </div>
+          <ol class="workflow-steps" aria-label="转换步骤">
+            <li class="active" data-workflow-step="import"><b>01</b><span>导入文件</span></li>
+            <li data-workflow-step="inspect"><b>02</b><span>检查路线</span></li>
+            <li data-workflow-step="export"><b>03</b><span>导出文件</span></li>
+          </ol>
+        </div>
+        <section class="upload-section">
+          <div id="dropZone" class="drop-zone" role="button" tabindex="0">
+            <input
+              type="file"
+              id="fileInput"
+              accept=".kml,.kmz,.gpx,.geojson,.json,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz,application/gpx+xml,application/geo+json,application/json"
+              multiple
+              hidden
+            />
             <svg
-              width="24"
-              height="24"
+              class="drop-icon"
+              width="40"
+              height="40"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
               stroke-linecap="round"
               stroke-linejoin="round"
+              aria-hidden="true"
             >
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-              <circle cx="12" cy="9" r="2.5" />
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-          </div>
-          <div class="title-row">
-            <h1>KML / KMZ / GPX 互转</h1>
-            <span class="version-badge" aria-label="当前版本">V1.1.2</span>
-          </div>
-          <p class="tagline">轨迹 · 路点 · 起终点 · 时间戳</p>
-          <div class="trust-row" aria-label="产品特性">
-            <span>浏览器本地处理</span>
-            <span>批量转换</span>
-            <span>KMZ 支持</span>
-          </div>
-        </header>
-
-        <main id="converter">
-          <div class="workspace-intro">
-            <span class="workspace-kicker">Route workspace</span>
-            <p>上传文件，选择输出格式，然后立即下载。没有上传，没有等待。</p>
-          </div>
-          <section class="upload-section">
-            <div id="dropZone" class="drop-zone" role="button" tabindex="0">
-              <input
-                type="file"
-                id="fileInput"
-                accept=".kml,.kmz,.gpx,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz,application/gpx+xml"
-                multiple
-                hidden
-              />
-              <svg
-                class="drop-icon"
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <p class="drop-text">
-                拖放 KML、KMZ 或 GPX 文件到此处，或<span class="link">点击选择</span>（可多选）
-              </p>
-              <div class="drop-hint" aria-hidden="true">
-                <span>.kml</span>
-                <span>.kmz</span>
-                <span>.gpx</span>
-              </div>
-            </div>
-            <div id="selectionSummary" class="selection-summary" hidden>
-              <div>
-                <span class="selection-eyebrow">已加入工作区</span>
-                <strong id="selectionCount">0 个文件</strong>
-              </div>
-              <button type="button" id="clearFilesBtn" class="text-button">清除</button>
-            </div>
-            <ul id="fileQueue" class="file-queue" aria-label="已选择的文件"></ul>
-          </section>
-
-          <section class="options-section">
-            <span class="section-label">导出选项</span>
-            <div class="options-row">
-              <label for="startName">起点名称：</label>
-              <input type="text" id="startName" value="Start" placeholder="Start" />
-              <label for="endName">终点名称：</label>
-              <input type="text" id="endName" value="End" placeholder="End" />
-            </div>
-            <div class="options-row">
-              <label><input type="checkbox" id="preserveTime" checked /> 保留时间戳</label>
-            </div>
-          </section>
-
-          <section class="convert-section">
-            <label for="convertDirection">转换方向：</label>
-            <select id="convertDirection">
-              <option value="auto">自动（根据文件类型）</option>
-              <option value="gpx2kml">GPX → KML</option>
-              <option value="gpx2kmz">GPX → KMZ</option>
-              <option value="kml2gpx">KML → GPX</option>
-              <option value="kml2kmz">KML → KMZ</option>
-              <option value="kmz2kml">KMZ → KML</option>
-              <option value="kmz2gpx">KMZ → GPX</option>
-            </select>
-            <button type="button" id="convertBtn" disabled>转换并下载</button>
-            <p id="directionHint" class="direction-hint">选择一个文件后，将自动推荐输出格式。</p>
-          </section>
-
-          <section id="previewSection" class="preview-section" hidden>
-            <h3>预览</h3>
-            <div id="mapPreview" class="map-preview" aria-label="轨迹卫星地图预览"></div>
-            <div id="previewContent" class="preview-content"></div>
-          </section>
-
-          <section id="batchSection" class="batch-section" hidden>
-            <div class="section-heading-row">
-              <h3>批量结果</h3>
-              <button type="button" id="downloadAllBtn" class="secondary-button" disabled>
-                打包下载全部
-              </button>
-            </div>
-            <div id="batchList" class="batch-list"></div>
-          </section>
-
-          <section class="status-section">
-            <p id="statusMessage" class="status-message" aria-live="polite"></p>
-          </section>
-
-          <section id="info" class="info-section">
-            <h2>说明</h2>
-            <p>
-              支持 <strong>KML</strong>、<strong>KMZ</strong>、<strong>GPX</strong>
-              三种格式互转。输出包含轨迹点、轨迹线、起终点路点，可直接在 Google Earth
-              中打开。支持多轨迹、仅路点、批量转换与时间戳保留。
+            <p class="drop-text">
+              拖放 KML、KMZ、GPX 或 GeoJSON 文件到此处，或<span class="link">点击选择</span
+              >（可多选）
             </p>
-            <p>转换在本地完成，文件不会上传到任何服务器。</p>
-          </section>
-        </main>
+            <div class="drop-hint" aria-hidden="true">
+              <span>.kml</span>
+              <span>.kmz</span>
+              <span>.gpx</span>
+              <span>.geojson</span>
+            </div>
+          </div>
+          <div id="selectionSummary" class="selection-summary" hidden>
+            <div>
+              <span class="selection-eyebrow">已加入工作区</span>
+              <strong id="selectionCount">0 个文件</strong>
+            </div>
+            <button type="button" id="clearFilesBtn" class="text-button">清除</button>
+          </div>
+          <ul id="fileQueue" class="file-queue" aria-label="已选择的文件"></ul>
+        </section>
 
-        <footer class="app-footer">
-          <span>V1.1.2</span>
-          <span>本地转换</span>
-          <span>MIT License</span>
-        </footer>
-      </div>
+        <section class="options-section">
+          <span class="section-label">导出选项</span>
+          <div class="options-row">
+            <label for="startName">起点名称：</label>
+            <input type="text" id="startName" value="Start" placeholder="Start" />
+            <label for="endName">终点名称：</label>
+            <input type="text" id="endName" value="End" placeholder="End" />
+          </div>
+          <div class="options-row">
+            <label><input type="checkbox" id="preserveTime" checked /> 保留时间戳</label>
+            <label><input type="checkbox" id="preserveStructure" checked /> 保留路线与分段</label>
+            <label><input type="checkbox" id="stripElevation" /> 移除海拔</label>
+            <label><input type="checkbox" id="trimEndpoints" /> 隐去首尾各 200 米</label>
+          </div>
+          <div class="options-row">
+            <label for="simplifyTolerance">轨迹简化：</label>
+            <select id="simplifyTolerance">
+              <option value="0">不简化</option>
+              <option value="5">轻度（5 m）</option>
+              <option value="20">中度（20 m）</option>
+              <option value="100">强力（100 m）</option>
+            </select>
+            <label><input type="checkbox" id="offlinePreview" /> 离线预览（不加载卫星底图）</label>
+          </div>
+        </section>
+
+        <section class="convert-section">
+          <label for="convertDirection">转换方向：</label>
+          <select id="convertDirection">
+            <option value="auto">自动（根据文件类型）</option>
+            <option value="gpx2kml">GPX → KML</option>
+            <option value="gpx2kmz">GPX → KMZ</option>
+            <option value="kml2gpx">KML → GPX</option>
+            <option value="kml2kmz">KML → KMZ</option>
+            <option value="kmz2kml">KMZ → KML</option>
+            <option value="kmz2gpx">KMZ → GPX</option>
+            <option value="gpx2geojson">GPX → GeoJSON</option>
+            <option value="kml2geojson">KML → GeoJSON</option>
+            <option value="kmz2geojson">KMZ → GeoJSON</option>
+            <option value="geojson2kml">GeoJSON → KML</option>
+            <option value="geojson2kmz">GeoJSON → KMZ</option>
+            <option value="geojson2gpx">GeoJSON → GPX</option>
+          </select>
+          <button type="button" id="convertBtn" disabled>转换并下载</button>
+          <p id="directionHint" class="direction-hint">选择一个文件后，将自动推荐输出格式。</p>
+        </section>
+
+        <section id="compatibilitySection" class="compatibility-section" hidden aria-live="polite">
+          <div class="section-heading-row">
+            <div>
+              <span class="section-label">转换兼容性</span>
+              <h3>输出前检查</h3>
+            </div>
+            <span id="compatibilityBadge" class="readiness-badge">待分析</span>
+          </div>
+          <ul id="compatibilityList" class="compatibility-list"></ul>
+        </section>
+
+        <section id="inspectorSection" class="inspector-section" hidden aria-live="polite">
+          <div class="section-heading-row inspector-heading">
+            <div>
+              <span class="section-label">路线检查</span>
+              <h3 id="inspectorTitle">正在读取路线</h3>
+            </div>
+            <span id="readinessBadge" class="readiness-badge">分析中</span>
+          </div>
+          <div class="route-stats" aria-label="路线数据摘要">
+            <div class="route-stat"><span>轨迹</span><strong id="trackCount">—</strong></div>
+            <div class="route-stat"><span>轨迹点</span><strong id="pointCount">—</strong></div>
+            <div class="route-stat"><span>路点</span><strong id="waypointCount">—</strong></div>
+            <div class="route-stat"><span>估算里程</span><strong id="distanceValue">—</strong></div>
+            <div class="route-stat"><span>时间跨度</span><strong id="durationValue">—</strong></div>
+            <div class="route-stat"><span>累计爬升</span><strong id="ascentValue">—</strong></div>
+            <div class="route-stat"><span>平均速度</span><strong id="speedValue">—</strong></div>
+          </div>
+          <p id="outputPlan" class="output-plan"></p>
+        </section>
+
+        <section id="previewSection" class="preview-section" hidden>
+          <h3>预览</h3>
+          <div id="mapPreview" class="map-preview" aria-label="轨迹卫星地图预览"></div>
+          <div id="previewContent" class="preview-content"></div>
+        </section>
+
+        <section id="batchSection" class="batch-section" hidden>
+          <div class="section-heading-row">
+            <h3>批量结果</h3>
+            <button type="button" id="downloadAllBtn" class="secondary-button" disabled>
+              打包下载全部
+            </button>
+          </div>
+          <div id="batchList" class="batch-list"></div>
+        </section>
+
+        <section class="status-section">
+          <p id="statusMessage" class="status-message" aria-live="polite"></p>
+        </section>
+
+        <section id="info" class="info-section">
+          <h2>说明</h2>
+          <p>
+            支持 <strong>KML</strong>、<strong>KMZ</strong>、<strong>GPX</strong> 与
+            <strong>GeoJSON</strong>
+            三种格式互转。KML/KMZ 输出遵循 Google Earth 兼容的 KML 2.2
+            结构，包含共享样式、轨迹分组、起终点路点；完整时间序列会生成
+            <code>gx:Track</code>。支持多轨迹、仅路点、批量转换与时间戳保留。
+          </p>
+          <p>转换在本地完成，文件不会上传到任何服务器。</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span>V1.1.2</span>
+        <span>本地转换</span>
+        <span>MIT License</span>
+      </footer>
     </div>
 
     <script src="vendor/leaflet/leaflet.js"></script>
     <script src="vendor/jszip/jszip.min.js"></script>
     <script src="js/parser.js"></script>
     <script src="js/builder.js"></script>
+    <script src="js/geojson.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

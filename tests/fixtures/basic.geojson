@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Shanghai sample" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.4737, 31.2304, 12],
+          [121.475, 31.231, 15]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sample waypoint" },
+      "geometry": { "type": "Point", "coordinates": [121.4737, 31.2304] }
+    }
+  ]
+}

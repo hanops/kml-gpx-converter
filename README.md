@@ -1,10 +1,10 @@
-# KML / KMZ / GPX 互转工具
+# Route Converter
 
 纯前端 Web 工具，在浏览器本地完成 **KML**、**KMZ**、**GPX** 三种格式互转。适合把运动轨迹、Google Earth 路线和 GPS 路点文件快速转换成可下载的新文件。
 
 当前版本：**V1.1.2**
 
-![KML / KMZ / GPX 互转工具主界面](docs/assets/screenshot-main.png)
+![Route Converter main interface](docs/assets/screenshot-main.png)
 
 ## 快速开始
 
@@ -24,12 +24,14 @@ http://localhost:8080
 
 ## 功能概览
 
-- **三格式互转**：支持 KML、KMZ（含 KML 的 ZIP）、GPX 相互转换；可选 GPX→KML、GPX→KMZ、KML→GPX、KML→KMZ、KMZ→KML、KMZ→GPX。
+- **格式互转**：支持 KML、KMZ（含 KML 的 ZIP）、GPX 与 GeoJSON；可在 Google Earth、GPS 与 GIS 工作流间转换。
 - **多轨迹**：支持文件中多条轨迹（多 `<trk>` / `<rte>` / LineString / `gx:Track`），每条都有起终点。
 - **预览**：选择单个文件后显示轨迹数、每条点数、起终点坐标及卫星地图预览；若仅有路点则提示「无轨迹线，仅路点」。
 - **仅路点**：当文件中没有轨迹线、只有路点时，仍可转换，输出仅含路点。
 - **批量**：一次选择多个 KML/KMZ/GPX 文件，逐条转换后，在「批量结果」中为每个文件提供独立下载。
-- **导出选项**：可自定义起点/终点名称，并可勾选「保留时间戳」。
+- **转换前检查**：导出前显示格式兼容性、数据保留提示和路线统计（距离、时间跨度、累计爬升、平均速度）。
+- **隐私与编辑**：可简化轨迹、移除时间/海拔、隐藏首尾各约 200 米，并保留 GPX 路线/分段结构。
+- **离线优先**：可不加载卫星底图预览；支持安装为离线 Web App。
 
 ## 支持格式
 
@@ -39,7 +41,7 @@ http://localhost:8080
 | KML  | `LineString`、`gx:Track`、`Point` Placemark        |
 | KMZ  | 包含 `.kml` 文件的 KMZ 压缩包                      |
 
-输出为标准 KML、GPX 或包含 `doc.kml` 的 KMZ。
+KML/KMZ 输出采用 Google Earth 兼容的 KML 2.2 结构：共享样式、轨迹/路点分组和起终点标注会被生成；当一条轨迹的每个点都有时间戳时，输出会使用 Google Earth `gx:Track` 保留时间序列。KMZ 的根文档为 `doc.kml`。
 
 ## 使用方式
 
@@ -64,6 +66,7 @@ http://localhost:8080
 
 - 文件解析、转换、KMZ 解压与打包均在当前浏览器本地完成。
 - 本项目没有后端服务，不会主动上传用户选择的 KML/KMZ/GPX 文件。
+
 - Leaflet 与 JSZip 已本地化在 `vendor/` 目录，页面运行不再依赖 CDN 加载脚本或样式。
 - 地图预览会加载第三方地图瓦片；如果不希望请求地图服务，可以断网使用转换功能。
 
@@ -128,8 +131,8 @@ kml-gpx-converter/
 
 ## 已知限制
 
-- KML 样式、图标、文件夹层级、Track/Route 名称等元数据不会完整保留。
-- GPX 输出当前以 `trk` 和 `wpt` 为主，不会恢复为原始 `rte` 结构。
+- 选择「保留路线与分段」时，GPX Route 与 Track Segment 会保留；更复杂的扩展元数据仍可能无法完全还原。
+- KML/KMZ 转为 GPX 或 GeoJSON 时，KML 样式、图标与文件夹层级无法被目标格式表达；未做编辑的 KML↔KMZ 会保留原 KML 文本。
 - KMZ 输出目前只打包生成的 `doc.kml`，不会保留原 KMZ 中的图片、图标或其他资源。
 - 地图预览依赖网络瓦片服务，离线时仍可转换但无法显示卫星底图。
 

@@ -9,6 +9,7 @@
     <pre id="results">Running...</pre>
     <script src="../js/parser.js"></script>
     <script src="../js/builder.js"></script>
+    <script src="../js/geojson.js"></script>
     <script>
       ;(function () {
         'use strict'
@@ -102,6 +103,91 @@
             const kml = buildKml(data, { startName: 'S&<', endName: 'E', preserveTime: true })
             assert(gpx.indexOf('S&amp;&lt;') !== -1, 'expected escaped GPX name')
             assert(kml.indexOf('A&amp;B &lt;C&gt;') !== -1, 'expected escaped KML waypoint')
+          })
+
+          test('builds Google Earth KML styles and gx:Track time sequences', function () {
+            const data = {
+              tracks: [
+                {
+                  points: [
+                    { lat: 31.2304, lon: 121.4737, ele: 12, time: '2026-01-01T00:00:00Z' },
+                    { lat: 31.231, lon: 121.475, ele: 15, time: '2026-01-01T00:01:00Z' }
+                  ]
+                }
+              ],
+              waypoints: []
+            }
+            const kml = buildKml(data, { preserveTime: true })
+            assert(
+              kml.indexOf('xmlns:gx="http://www.google.com/kml/ext/2.2"') !== -1,
+              'expected gx namespace'
+            )
+            assert(kml.indexOf('<Style id="route-line">') !== -1, 'expected shared route style')
+            assert(kml.indexOf('<gx:Track>') !== -1, 'expected Google Earth time track')
+            const parsed = parseKml(parseXml(kml))
+            assert(parsed.tracks.length === 1, 'expected generated gx track to parse')
+            assert(
+              parsed.tracks[0].points[1].time === '2026-01-01T00:01:00Z',
+              'expected time to round-trip'
+            )
+          })
+
+          test('preserves GPX route semantics and segments', function () {
+            const route = parseGpx(parseXml(fixtures.routeGpx))
+            assert(route.tracks[0].kind === 'route', 'expected route kind')
+            const gpx = buildGpx(route, { preserveStructure: true })
+            assert(gpx.indexOf('<rte>') !== -1, 'expected route output')
+          })
+
+          test('parses and builds GeoJSON routes and waypoints', function () {
+            const input = JSON.stringify({
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: { name: 'Route' },
+                  geometry: {
+                    type: 'LineString',
+                    coordinates: [
+                      [121, 31, 5],
+                      [121.1, 31.1, 6]
+                    ]
+                  }
+                },
+                {
+                  type: 'Feature',
+                  properties: { name: 'Pin' },
+                  geometry: { type: 'Point', coordinates: [121.2, 31.2] }
+                }
+              ]
+            })
+            const parsed = parseGeoJson(input)
+            assert(
+              parsed.tracks.length === 1 && parsed.waypoints.length === 1,
+              'expected GeoJSON features'
+            )
+            assert(
+              buildGeoJson(parsed).indexOf('FeatureCollection') !== -1,
+              'expected GeoJSON output'
+            )
+          })
+
+          test('applies KML privacy export options', function () {
+            const kml = buildKml(
+              {
+                tracks: [
+                  {
+                    points: [
+                      { lat: 1, lon: 2, ele: 99 },
+                      { lat: 3, lon: 4, ele: 100 }
+                    ]
+                  }
+                ],
+                waypoints: []
+              },
+              { stripElevation: true, preserveTime: false }
+            )
+            assert(kml.indexOf('2,1,99') === -1, 'expected elevation removal')
           })
 
           results.textContent = (failures ? 'FAILED' : 'OK') + '\n' + lines.join('\n')

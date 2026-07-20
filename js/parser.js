@@ -51,12 +51,28 @@
     const trkList = doc.getElementsByTagName('trk')
     for (let t = 0; t < trkList.length; t++) {
       const points = []
-      const trkpts = trkList[t].getElementsByTagName('trkpt')
-      for (let i = 0; i < trkpts.length; i++) {
-        const pt = parseGpxPoint(trkpts[i])
-        if (pt) points.push(pt)
+      const segments = []
+      const segmentEls = trkList[t].getElementsByTagName('trkseg')
+      for (let s = 0; s < segmentEls.length; s++) {
+        const segment = []
+        const trkpts = segmentEls[s].getElementsByTagName('trkpt')
+        for (let i = 0; i < trkpts.length; i++) {
+          const pt = parseGpxPoint(trkpts[i])
+          if (pt) {
+            points.push(pt)
+            segment.push(pt)
+          }
+        }
+        if (segment.length) segments.push(segment)
       }
-      if (points.length) tracks.push({ points })
+      if (points.length) {
+        tracks.push({
+          points: points,
+          segments: segments,
+          name: getChildText(trkList[t], 'name'),
+          kind: 'track'
+        })
+      }
     }
 
     const rteList = doc.getElementsByTagName('rte')
@@ -67,7 +83,9 @@
         const pt = parseGpxPoint(rtepts[i])
         if (pt) points.push(pt)
       }
-      if (points.length) tracks.push({ points })
+      if (points.length) {
+        tracks.push({ points: points, name: getChildText(rteList[r], 'name'), kind: 'route' })
+      }
     }
 
     const wptList = doc.getElementsByTagName('wpt')
@@ -120,6 +138,16 @@
     return list.length ? list[0] : null
   }
 
+  function findPlacemarkParent(element) {
+    let current = element && element.parentElement
+    while (current) {
+      const name = (current.localName || current.nodeName || '').toLowerCase()
+      if (name === 'placemark') return current
+      current = current.parentElement
+    }
+    return null
+  }
+
   /**
    * KML：多条 LineString → 多条轨迹；Point Placemarks → waypoints；支持时间（when）。
    */
@@ -132,7 +160,14 @@
       const coordEl = getFirstByLocalName(lineStrings[i], 'coordinates')
       if (!coordEl || !coordEl.textContent) continue
       const points = parseKmlCoords(coordEl.textContent)
-      if (points.length) tracks.push({ points })
+      if (points.length) {
+        const placemark = findPlacemarkParent(lineStrings[i])
+        tracks.push({
+          points: points,
+          name: placemark ? getChildText(placemark, 'name') : '',
+          kind: 'track'
+        })
+      }
     }
 
     const gxTracks = findAllByLocalName(doc, 'Track')
@@ -147,7 +182,14 @@
           points.push(pt)
         }
       }
-      if (points.length) tracks.push({ points })
+      if (points.length) {
+        const placemark = findPlacemarkParent(gxTracks[i])
+        tracks.push({
+          points: points,
+          name: placemark ? getChildText(placemark, 'name') : '',
+          kind: 'track'
+        })
+      }
     }
 
     const placemarks = findAllByLocalName(doc, 'Placemark')

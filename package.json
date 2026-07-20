@@ -6,7 +6,7 @@
     "build:sites": "node scripts/build-sites.mjs",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "check": "node --check js/parser.js && node --check js/builder.js && node --check js/app.js",
+    "check": "node --check js/parser.js && node --check js/builder.js && node --check js/geojson.js && node --check js/app.js && node --check service-worker.js",
     "test": "echo 'Open tests/parser-builder.html in a browser to run tests'"
   },
   "devDependencies": {
