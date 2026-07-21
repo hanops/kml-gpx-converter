@@ -121,15 +121,19 @@ a:focus-visible {
 
 .brand-mark {
   display: grid;
-  width: 31px;
-  height: 31px;
+  width: 34px;
+  height: 34px;
   place-items: center;
-  border: 1px solid var(--copper);
-  color: #f9d7bf;
-  font-family: 'Avenir Next', sans-serif;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: -0.02em;
+  overflow: hidden;
+  border: 1px solid rgba(244, 240, 228, 0.22);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(4, 20, 18, 0.24);
+}
+
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .hero-index {

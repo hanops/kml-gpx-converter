@@ -1,7 +1,11 @@
-const CACHE = 'route-converter-v1.2.0-r2'
+const CACHE = 'route-converter-v1.2.0-r3'
 const CORE = [
   '/',
   '/index.html',
+  '/manifest.webmanifest',
+  '/icons/route-studio.svg',
+  '/icons/route-studio-192.png',
+  '/icons/route-studio-512.png',
   '/css/style.css',
   '/js/app.js',
   '/js/parser.js',
