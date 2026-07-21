@@ -25,13 +25,10 @@ jobs:
         run: npm ci
 
       - name: JavaScript syntax checks
-        run: |
-          node --check js/parser.js
-          node --check js/builder.js
-          node --check js/app.js
+        run: npm run check
 
       - name: Check code formatting
-        run: npx prettier --check .
+        run: npm run lint
 
       - name: Required file checks
         run: |
@@ -41,4 +38,8 @@ jobs:
           test -f vendor/leaflet/leaflet.css
           test -f vendor/leaflet/leaflet.js
           test -f vendor/jszip/jszip.min.js
+          test -f js/geojson.js
+          test -f service-worker.js
+          test -f manifest.webmanifest
+          test -f icons/route-studio.svg
           test -f tests/parser-builder.html

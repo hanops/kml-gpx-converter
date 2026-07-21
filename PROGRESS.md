@@ -1,80 +1,50 @@
-# 开发进度
+# Project Progress
 
-记录项目开发过程中的重要变更和决策。
+This file records major implementation decisions and verification milestones. User-facing release notes live in `CHANGELOG.md`.
 
-## 2026-07-20 - Route Converter V1.2.0
+## 2026-07-21 - English interface, app identity, and documentation
 
-### 完成内容
+### Completed
 
-- 新增 GeoJSON 导入与导出，支持路线与路点在 KML、KMZ、GPX、GeoJSON 之间转换。
-- KML/KMZ 输出改为 Google Earth 兼容结构，支持共享样式、起终点标记和完整时间序列的 `gx:Track`。
-- 保留 GPX Route 语义与 Track Segment 分段；在未编辑的 KML/KMZ 转换中可保留原始 KML 文本。
-- 增加导出前兼容性检查、路线统计、文件/点数保护、轨迹简化、移除海拔或时间、隐藏首尾与离线地图预览。
-- 完善批量导出、PWA 离线缓存和安装入口；界面品牌更新为 Route Converter，并收敛为单栏转换工作区。
+- Rebuilt the product interface as an English cartographic workspace with distinct import, inspection, and export stages.
+- Added a shared route logo for the homepage, browser favicon, and installable app icons.
+- Kept the product name as Route Converter across the app, manifest, package metadata, and documentation.
+- Reorganized the README, contribution guide, security policy, repository templates, and maintainer instructions around the current V1.2.x product.
+- Published the current app through OpenAI Sites and kept the GitHub source synchronized.
 
-### 验证
+### Validation
 
 - `npm run check`
 - `npm run lint`
 - `npm run build:sites`
-- 浏览器 parser/builder 测试页
+- `node --check dist/server/index.js`
 
-## 2026-05-31 - 设计优化、工程规范与 Vercel 部署
+## 2026-07-20 - Route Converter V1.2.0
 
-### 完成内容
+### Completed
 
-#### 1. 前端设计优化
+- Added GeoJSON import and export for routes and waypoints.
+- Generated Google Earth-compatible KML and KMZ output with shared styles, endpoint markers, and `gx:Track` for complete time sequences.
+- Preserved GPX route semantics and track segments when requested.
+- Added compatibility checks, route statistics, file and point limits, track simplification, timestamp and elevation controls, endpoint trimming, and offline map preview.
+- Improved batch export and added PWA installation and offline asset caching.
 
-- **配色方案**：从通用的 Material Design 蓝色改为暖色调土黄色 (#c8601a)，更具地理/地图工具质感
-- **字体升级**：Instrument Serif（标题）+ DM Sans（正文）
-- **背景纹理**：添加 topographic 等高线 SVG 纹理
-- **Drop Zone 重设计**：
-  - 上传图标 SVG
-  - 格式标签（.kml .kmz .gpx）
-  - hover 和 drag-over 动画
-  - 渐变背景和光晕效果
-- **界面层次**：圆角系统、阴影层级、状态色块
+### Validation
 
-#### 2. 工程规范完善
+- `npm run check`
+- `npm run lint`
+- `npm run build:sites`
+- Browser parser and builder fixtures
 
-- **Prettier 代码格式化**
-  - `.prettierrc` 配置
-  - `.prettierignore` 忽略规则
-  - `package.json` 包含 npm scripts 和 devDependencies
-- **CI 改进**
-  - `npm ci` 安装依赖
-  - `npx prettier --check .` 格式检查
-  - 统一命令：`npm run check` 和 `npm run lint`
-- **文档更新**
-  - `AGENTS.md` 更新验证命令
-  - `CONTRIBUTING.md` 添加 Code Style 部分
-- **CLAUDE.md 软链**：指向 AGENTS.md
+## 2026-05-31 - Frontend and project maintenance
 
-### 新增文件
+### Completed
 
-```
-package.json       # npm 配置
-.prettierrc        # Prettier 规则
-.prettierignore    # 忽略规则
-CLAUDE.md          # -> AGENTS.md 软链
-```
+- Introduced the first map-inspired visual system and redesigned the drop zone.
+- Added Prettier configuration, npm validation scripts, and GitHub Actions checks.
+- Added Vercel deployment headers and web analytics.
+- Added contributor, security, release, and maintenance documentation.
 
-### 验证
+## 2026-05-08 - Initial open-source release
 
-- `npm run check` ✅
-- `npm run lint` ✅
-
-#### 3. Vercel 部署配置
-
-- **`vercel.json`**：添加部署配置
-  - 空构建命令 + 当前目录输出（纯静态站）
-  - 安全响应头：`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: strict-origin-when-cross-origin`
-  - `vendor/` 资源缓存策略：`public, max-age=31536000, immutable`
-- **Vercel Web Analytics**：在 `index.html` 中集成 Vercel 统计脚本
-- **`.gitignore`**：添加 `.vercel` 忽略规则
-
----
-
-## 2026-05-08 - 项目初始化
-
-（详见 CHANGELOG.md V1.1.0 和 V1.1.1）
+The initial release established KML, KMZ, and GPX conversion, browser tests, local Leaflet and JSZip dependencies, example files, MIT licensing, and GitHub project templates. See `CHANGELOG.md` for version-level details.

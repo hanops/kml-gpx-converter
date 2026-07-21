@@ -19,6 +19,11 @@ What would you like to happen?
 - [ ] GPX
 - [ ] KML
 - [ ] KMZ
+- [ ] GeoJSON
+
+## Compatibility target
+
+Name the application, device, or specification this should work with.
 
 ## Additional Context
 

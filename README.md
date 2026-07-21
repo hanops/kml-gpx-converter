@@ -1,140 +1,129 @@
-# Route Converter
+<div align="center">
+  <img src="icons/route-studio.svg" width="96" height="96" alt="Route Converter logo">
+  <h1>Route Converter</h1>
+  <p>Convert KML, KMZ, GPX, and GeoJSON route files without uploading them.</p>
+  <p>
+    <a href="https://kml-gpx-converter.guoyin277.chatgpt.site"><strong>Open the web app</strong></a>
+    ·
+    <a href="CONTRIBUTING.md">Contribute</a>
+    ·
+    <a href="SECURITY.md">Security</a>
+  </p>
+</div>
 
-A private, browser-based tool for converting route data between **KML**, **KMZ**, **GPX**, and **GeoJSON**. It is designed for clean handoffs between Google Earth, GPS devices, fitness platforms, and GIS tools.
+![Route Converter interface](docs/assets/screenshot-main.png)
 
-Current version: **V1.2.0**
+Route Converter is a static web app for moving route data between Google Earth, GPS devices, fitness platforms, and GIS tools. Parsing, conversion, KMZ extraction, and output packaging happen in your browser.
 
-## Quick start
+Current release: **V1.2.0**
 
-Open `index.html` directly, or start a local static server for the most reliable browser behavior:
+## What it does
+
+| Capability          | Details                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Format conversion   | KML, KMZ, GPX, and GeoJSON input and output                                                                |
+| Google Earth output | KML 2.2, shared styles, route groups, endpoint markers, and `gx:Track` time sequences                      |
+| Route inspection    | Track and waypoint counts, distance, duration, elevation gain, average speed, coordinates, and map preview |
+| Batch workflow      | Multiple files, individual downloads, and a combined ZIP archive                                           |
+| Route controls      | Track simplification, timestamp or elevation removal, endpoint trimming, and GPX structure preservation    |
+| Offline use         | Installable web app, local runtime assets, and an option to disable map tiles                              |
+
+Waypoint-only files are supported. A route line is not required when the source contains valid waypoints.
+
+## Supported data
+
+| Format  | Input support                                                       | Output behavior                                          |
+| ------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
+| GPX     | Tracks, segments, routes, track points, route points, and waypoints | Preserves route and segment structure when requested     |
+| KML     | `LineString`, `gx:Track`, and `Point` placemarks                    | Generates a Google Earth-compatible KML 2.2 document     |
+| KMZ     | Archives containing a `.kml` entry                                  | Packages generated output as `doc.kml`                   |
+| GeoJSON | `FeatureCollection`, `LineString`, `MultiLineString`, and `Point`   | Exports line and point features in a `FeatureCollection` |
+
+Automatic detection chooses a sensible output from the selected file type. You can also select any supported conversion direction explicitly.
+
+## Use the app
+
+Open the [hosted Route Converter](https://kml-gpx-converter.guoyin277.chatgpt.site), then:
+
+1. Drop one or more supported files into the import area.
+2. Review the route summary and compatibility notes.
+3. Adjust export settings if needed.
+4. Select **Convert & download**, or download batch results as a ZIP.
+
+The satellite map preview loads third-party map tiles. Enable **Offline preview** to avoid tile requests while keeping conversion available.
+
+## Run locally
+
+No application build is required. Start a static server from the repository root:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then visit:
+Open [http://localhost:8080](http://localhost:8080), or use the public fixtures in `examples/` to test the workflow.
 
-```text
-http://localhost:8080
+## Privacy model
+
+- Selected route files stay in the current browser session.
+- The project has no backend that receives route content.
+- Leaflet and JSZip are vendored under `vendor/`.
+- Map preview and optional web analytics can make network requests, but route file contents are not sent with those requests.
+- Parsed names and metadata are rendered with DOM nodes or `textContent`, not `innerHTML`.
+
+See [SECURITY.md](SECURITY.md) for reporting and trust-boundary details.
+
+## Development
+
+Install the formatting dependency and run the project checks:
+
+```bash
+npm ci
+npm run check
+npm run lint
+npm run build:sites
+node --check dist/server/index.js
 ```
 
-Drop a KML, KMZ, GPX, or GeoJSON file into the workspace, choose a conversion direction, and select **Convert & download**.
-
-## Highlights
-
-- **Four formats**: convert between KML, KMZ, GPX, and GeoJSON.
-- **Google Earth-ready output**: generates KML 2.2 with shared styles, route and waypoint folders, endpoint markers, and `gx:Track` when complete timestamps are available.
-- **Route inspection**: review track counts, point counts, waypoints, distance, duration, elevation gain, average speed, coordinates, and a satellite map before export.
-- **Batch conversion**: process multiple files and download results individually or as a ZIP archive.
-- **Waypoint-only data**: convert valid waypoint collections even when no route line is present.
-- **Route editing**: simplify tracks, remove timestamps or elevation, trim approximately 200 metres from each endpoint, and preserve GPX routes and segments.
-- **Local by design**: parsing, conversion, KMZ extraction, and packaging happen in the browser.
-- **Offline-friendly**: skip map tiles and install the tool as a web app.
-
-## Supported data
-
-| Format  | Supported content                                        |
-| ------- | -------------------------------------------------------- |
-| GPX     | `trk`, `trkseg`, `trkpt`, `rte`, `rtept`, and `wpt`      |
-| KML     | `LineString`, `gx:Track`, and `Point` placemarks         |
-| KMZ     | Archives containing a `.kml` file                        |
-| GeoJSON | `FeatureCollection`, line geometries, and point features |
-
-KML and KMZ output uses a Google Earth-compatible KML 2.2 structure. KMZ output contains a root `doc.kml` file.
-
-## How to use it
-
-1. Drag one or more supported files into the import area, or choose files from your device.
-2. Set endpoint labels and data-preservation options under **Export settings**.
-3. Keep automatic format detection, or choose an explicit conversion direction.
-4. For a single file, inspect the route and select **Convert & download**.
-5. For multiple files, download each converted file or choose **Download all as ZIP**.
-
-Selected route files are not uploaded to a server.
-
-## Example files
-
-The `examples/` directory contains public fixtures for manual testing:
-
-- `examples/basic.gpx`
-- `examples/basic.kml`
-
-Drop either file into the app to test conversion, route inspection, map rendering, and endpoint generation.
-
-## Privacy
-
-- File parsing, conversion, KMZ extraction, and output packaging run locally in the current browser.
-- The project has no backend for processing selected route files.
-- Leaflet and JSZip are vendored under `vendor/`, so runtime scripts and styles do not depend on a CDN.
-- The satellite preview requests third-party map tiles unless **Offline preview** is enabled.
-
-## Validation
-
-Start a local server and open:
+For browser fixtures, start the static server and open:
 
 ```text
 http://localhost:8080/tests/parser-builder.html
 ```
 
-The page displays `OK` when the parser and builder fixtures pass.
+The page should display `OK`. Also confirm that the main page loads without console errors.
 
-Run syntax and formatting checks with:
-
-```bash
-npm run check
-npm run lint
-```
-
-GitHub Actions runs the same checks on pushes to `main` and on pull requests.
-
-## Project structure
+## Project layout
 
 ```text
-kml-gpx-converter/
-├── .github/          # Issue templates, PR template, and CI workflow
-├── index.html        # Single-page interface
-├── css/style.css     # Layout and visual design
-├── examples/         # Public manual-test files
+.
+├── index.html                 # Single-page interface
+├── css/style.css              # Layout and visual design
 ├── js/
-│   ├── parser.js     # KML and GPX parsing into { tracks, waypoints }
-│   ├── builder.js    # KML and GPX output from { tracks, waypoints }
-│   ├── geojson.js    # GeoJSON parsing and output
-│   └── app.js        # File handling, inspection, batch mode, KMZ, and downloads
-├── vendor/           # Local Leaflet and JSZip dependencies
-├── tests/            # Browser test runner and fixtures
-├── vercel.json       # Deployment and security headers
-├── package.json      # Validation and Sites packaging scripts
-├── CONTRIBUTING.md
-├── CHANGELOG.md
-├── LICENSE
-├── SECURITY.md
-├── VERSION
-└── README.md
+│   ├── parser.js              # GPX and KML parsing
+│   ├── builder.js             # GPX and KML generation
+│   ├── geojson.js             # GeoJSON parsing and generation
+│   └── app.js                 # File workflow, preview, KMZ, batch mode, and downloads
+├── icons/                     # App logo and install icons
+├── examples/                  # Public manual-test files
+├── tests/                     # Browser test runner and fixtures
+├── vendor/                    # Local Leaflet and JSZip dependencies
+├── scripts/build-sites.mjs    # OpenAI Sites packaging
+├── service-worker.js          # Offline asset cache
+└── .github/                   # CI and contribution templates
 ```
-
-## Contributing and security
-
-- See `CONTRIBUTING.md` for contribution guidelines.
-- See `SECURITY.md` for vulnerability reporting.
-- See `vendor/THIRD_PARTY.md` for dependency versions and sources.
-
-## Browser support
-
-Use a current version of Chrome, Edge, Safari, or Firefox. The app requires:
-
-- `FileReader`
-- `DOMParser`
-- `Blob` and `URL.createObjectURL`
-- `Promise`
-- `fetch` for loading test fixtures
 
 ## Known limitations
 
-- GPX routes and track segments are preserved when **Preserve routes & segments** is enabled, but complex extension metadata may not round-trip exactly.
-- KML styles, icons, and folder hierarchy cannot be represented when exporting to GPX or GeoJSON. An unedited KML-to-KMZ or KMZ-to-KML conversion preserves the original KML text.
-- Generated KMZ files contain `doc.kml` only; images, icons, and other resources from the source archive are not retained.
-- Map preview requires network tile access. Conversion remains available offline.
+- Complex extension metadata may not round-trip exactly.
+- GPX and GeoJSON cannot represent KML styles, icons, or folder hierarchy.
+- An unedited KML-to-KMZ or KMZ-to-KML conversion preserves the original KML text, but generated KMZ files do not retain embedded images, icons, or other resources.
+- Map preview requires network tile access unless offline preview is enabled.
+- Input files are limited to 50 MB and 200,000 track points in the browser workflow.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Bug reports should use a minimal sample without private location data.
 
 ## License
 
-MIT. See `LICENSE`.
+[MIT](LICENSE)

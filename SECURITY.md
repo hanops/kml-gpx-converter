@@ -1,33 +1,48 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
 
-Security updates target the latest released version.
+Security fixes target the current release line.
 
-| Version | Supported |
-| ------- | --------- |
-| V1.1.x  | Yes       |
+| Version            | Supported |
+| ------------------ | --------- |
+| V1.2.x             | Yes       |
+| V1.1.x and earlier | No        |
 
-## Reporting a Vulnerability
+## Report a vulnerability
 
-Please report security issues privately instead of opening a public issue.
+Do not open a public issue for a vulnerability.
 
-If GitHub private vulnerability reporting is enabled for this repository, use that channel. Otherwise, contact the repository owner directly.
+Use GitHub private vulnerability reporting when it is available. Otherwise, contact the repository owner directly. Include:
 
-Helpful details include:
+- a short description and expected impact;
+- a minimal non-sensitive file or input that reproduces the issue;
+- browser and operating system versions;
+- whether the issue affects local-file privacy, script execution, archive handling, or generated output integrity.
 
-- A short description of the issue.
-- A minimal file or input that demonstrates the issue.
-- Browser and operating system version.
-- Whether the issue affects local file privacy, script execution, or generated output integrity.
+Avoid sharing real home, work, or activity locations. Replace private coordinates and timestamps before sending a reproduction file.
 
-## Security Model
+## Security model
 
-This project is designed to run entirely in the browser:
+Route Converter parses and converts files in the browser. The application has no backend for route processing and does not intentionally upload selected KML, KMZ, GPX, or GeoJSON content.
 
-- It has no backend service.
-- It does not intentionally upload selected KML/KMZ/GPX files.
-- Leaflet and JSZip runtime assets are vendored locally.
-- Map tiles are loaded from a network tile provider when map preview is used.
+The main trust boundaries are:
 
-User-supplied file content should be treated as untrusted. UI code should use `textContent` or DOM nodes rather than `innerHTML` when displaying parsed names or metadata.
+- User-selected files are untrusted input.
+- KMZ archives may contain unexpected paths or large entries.
+- Parsed names and metadata must be rendered with DOM nodes or `textContent`.
+- Generated XML and JSON must escape user-derived values correctly.
+- Satellite map tiles come from a third-party network service unless offline preview is enabled.
+- Hosted analytics may receive ordinary page-view data, but must not receive selected route contents.
+
+Leaflet and JSZip runtime files are vendored in the repository. Their versions and upstream sources are recorded in `vendor/THIRD_PARTY.md`.
+
+## Deployment headers
+
+The included deployment configuration sets:
+
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+
+These headers reduce browser-level exposure but do not replace safe parsing, output escaping, file-size limits, or dependency review.

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## Unreleased
+
+- Reworked the interface into an English cartographic workspace with clearer import, inspection, and export stages.
+- Added a shared application logo for the homepage, browser tab, and installable web app.
+- Reorganized project documentation around the hosted app, privacy model, supported data, validation, and contribution workflow.
+- Updated GitHub issue and pull request templates for GeoJSON and the current validation commands.
+
 ## V1.2.0 - 2026-07-20
 
 - Added GeoJSON import and export for routes and waypoints.

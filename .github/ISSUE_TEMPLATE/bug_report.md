@@ -30,6 +30,11 @@ What happened instead?
 - [ ] GPX
 - [ ] KML
 - [ ] KMZ
+- [ ] GeoJSON
+
+## Conversion Direction
+
+Example: `GPX → KML`
 
 ## Browser
 
@@ -37,4 +42,4 @@ Browser and version:
 
 ## Notes
 
-If you can share a minimal sample file, attach it. Do not attach private location data unless you are comfortable sharing it.
+If you can share a minimal sample file, attach it after replacing private coordinates, names, and timestamps.

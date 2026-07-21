@@ -1,16 +1,21 @@
-# Contributing
+# Contributing to Route Converter
 
-Thanks for helping improve KML / KMZ / GPX Converter.
+Route Converter is a small, browser-only geospatial utility. Contributions should keep the app easy to audit, run, and deploy as static files.
 
-## Project Principles
+## Before you start
 
-- Keep the app frontend-only and local-first.
-- Avoid adding a build step or framework unless there is a clear product need.
-- Keep parsing/building logic separate from UI logic.
-- Treat user-provided file content as untrusted; do not render it with `innerHTML`.
-- Preserve privacy: do not introduce uploads or remote processing.
+- Search existing issues before opening a new one.
+- Use a minimal route file that does not expose private location data.
+- Keep changes focused on one problem or product improvement.
+- Discuss new frameworks, remote services, or format-wide architecture changes before implementing them.
 
-## Local Development
+## Local setup
+
+Install the development dependency:
+
+```bash
+npm ci
+```
 
 Start a static server from the repository root:
 
@@ -18,60 +23,61 @@ Start a static server from the repository root:
 python3 -m http.server 8080
 ```
 
-Open:
+Open [http://localhost:8080](http://localhost:8080).
 
-```text
-http://localhost:8080
-```
+## Architecture rules
 
-## Code Style
+- Keep runtime code in plain HTML, CSS, and JavaScript.
+- Keep parser and builder logic independent from the DOM.
+- Treat every user-provided filename, placemark name, and metadata value as untrusted.
+- Use DOM nodes or `textContent` for user-provided text. Do not use `innerHTML`.
+- Do not add file uploads, remote conversion, or server-side route processing.
+- Prefer local runtime assets over CDN dependencies.
+- Keep Google Earth compatibility and data-preservation tradeoffs visible in the UI and docs.
 
-This project uses [Prettier](https://prettier.io/) for code formatting.
+## Format changes
 
-Before submitting changes, format your code:
+A parser or builder change should include a focused fixture in `tests/fixtures/` and an assertion in `tests/parser-builder.html`. Check the relevant round trip where the target format can represent the source data.
 
-```bash
-npm run lint:fix
-```
+Document any intentional loss of:
 
-Check formatting without modifying files:
-
-```bash
-npm run lint
-```
+- timestamps or elevation;
+- GPX routes or track segments;
+- KML styles, icons, or folders;
+- KMZ embedded resources;
+- GeoJSON properties or geometry detail.
 
 ## Validation
 
-Before submitting changes, run:
+Run the automated checks:
 
 ```bash
 npm run check
 npm run lint
+npm run build:sites
+node --check dist/server/index.js
 ```
 
-Then open:
+Then start the local server and verify:
 
-```text
-http://localhost:8080/tests/parser-builder.html
-```
+1. `http://localhost:8080/tests/parser-builder.html` displays `OK`.
+2. The main page loads without console errors.
+3. A relevant example file can be inspected and converted.
+4. Downloads open in the target application when the change affects output compatibility.
 
-The test page should display `OK`.
+Run `npm run lint:fix` when formatting needs correction.
 
-## Pull Requests
+## Pull requests
 
-For pull requests, include:
+Include:
 
-- What changed and why.
-- Manual validation steps.
-- Any known compatibility or data-preservation tradeoffs.
-- Screenshot updates when UI changes.
+- the problem and the chosen behavior;
+- validation performed;
+- compatibility, privacy, or data-loss implications;
+- updated screenshots when the interface changes.
 
-## Versioning
+Do not include private route files, API keys, local environment files, or generated build output.
 
-Use SemVer-style versions: `MAJOR.MINOR.PATCH`.
+## Releases
 
-For release changes, update:
-
-- `VERSION`
-- `CHANGELOG.md`
-- README version text, if applicable
+Route Converter follows SemVer. A release change updates `VERSION`, `CHANGELOG.md`, `PROGRESS.md`, the version shown in the app, and the README release line. Version changes only belong in release work.
