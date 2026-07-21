@@ -1,4 +1,4 @@
-const CACHE = 'route-converter-v1.2.0-r3'
+const CACHE = 'route-converter-v1.2.1-r1'
 const CORE = [
   '/',
   '/index.html',

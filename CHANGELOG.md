@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+## V1.2.1 - 2026-07-21
+
 - Reworked the interface into an English cartographic workspace with clearer import, inspection, and export stages.
 - Added a shared application logo for the homepage, browser tab, and installable web app.
 - Reorganized project documentation around the hosted app, privacy model, supported data, validation, and contribution workflow.

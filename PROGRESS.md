@@ -2,7 +2,7 @@
 
 This file records major implementation decisions and verification milestones. User-facing release notes live in `CHANGELOG.md`.
 
-## 2026-07-21 - English interface, app identity, and documentation
+## 2026-07-21 - Route Converter V1.2.1
 
 ### Completed
 

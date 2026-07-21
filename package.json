@@ -1,6 +1,6 @@
 {
   "name": "kml-gpx-converter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Private, browser-only KML, KMZ, GPX, and GeoJSON route converter",
   "scripts": {
     "build:sites": "node scripts/build-sites.mjs",

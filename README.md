@@ -15,7 +15,7 @@
 
 Route Converter is a static web app for moving route data between Google Earth, GPS devices, fitness platforms, and GIS tools. Parsing, conversion, KMZ extraction, and output packaging happen in your browser.
 
-Current release: **V1.2.0**
+Current release: **V1.2.1**
 
 ## What it does
 
